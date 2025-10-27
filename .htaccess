@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /App-Control-Gastos/
+
+# Redirect to public folder
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]
+

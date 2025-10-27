@@ -1,0 +1,93 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# PHP
+vendor/
+composer.phar
+composer.lock
+
+# Configuration Files (sensitive)
+config/database.php
+config/email.php
+
+# Log Files
+*.log
+logs/
+error_log
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.cache
+
+# Uploads
+uploads/
+files/
+
+# Node Modules (if using npm)
+node_modules/
+package-lock.json
+
+# Build Files
+dist/
+build/
+
+# Environment Files
+.env
+.env.local
+.env.production
+
+# Backup Files
+*.sql.backup
+*.bak
+*.backup
+
+# Session Files
+sessions/
+
+# Cache
+cache/
+*.cache
+
+# Development
+dev/
+development/
+
+# Documentation Build
+docs/_build/
+
+# Coverage Reports
+coverage/
+*.coverage
+
+# Database
+*.sqlite
+*.db
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+$RECYCLE.BIN/
+
+# Linux
+.directory
+
