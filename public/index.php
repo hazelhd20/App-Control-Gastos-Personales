@@ -31,6 +31,14 @@ if (!empty($action)) {
             $controller = new AuthController();
             $controller->resetPassword();
             break;
+        case 'verify-email-action':
+            $controller = new AuthController();
+            $controller->verifyEmail();
+            break;
+        case 'resend-verification':
+            $controller = new AuthController();
+            $controller->resendVerification();
+            break;
         case 'initial-setup':
             $controller = new ProfileController();
             $controller->initialSetup();
@@ -42,6 +50,10 @@ if (!empty($action)) {
         case 'add-income':
             $controller = new ProfileController();
             $controller->addIncome();
+            break;
+        case 'change-password':
+            $controller = new ProfileController();
+            $controller->changePassword();
             break;
         case 'add-transaction':
             $controller = new TransactionController();
@@ -80,7 +92,7 @@ if (!empty($action)) {
 
 // Route to views
 $allowed_pages = [
-    'login', 'register', 'forgot-password', 'reset-password',
+    'login', 'register', 'forgot-password', 'reset-password', 'verify-email',
     'initial-setup', 'dashboard', 'profile', 'transactions', 
     'add-transaction', 'reports'
 ];
@@ -90,7 +102,7 @@ if (!in_array($page, $allowed_pages)) {
 }
 
 // Public pages (no authentication required)
-$public_pages = ['login', 'register', 'forgot-password', 'reset-password'];
+$public_pages = ['login', 'register', 'forgot-password', 'reset-password', 'verify-email'];
 
 if (!in_array($page, $public_pages)) {
     requireLogin();
@@ -109,8 +121,14 @@ if (!in_array($page, $public_pages)) {
 }
 
 // Redirect authenticated users away from auth pages
-if (in_array($page, $public_pages) && $page !== 'reset-password') {
+if (in_array($page, $public_pages) && $page !== 'reset-password' && $page !== 'verify-email') {
     redirectIfAuthenticated();
+}
+
+// Handle email verification with token
+if ($page === 'verify-email' && isset($_GET['token'])) {
+    $controller = new AuthController();
+    $controller->verifyEmail();
 }
 
 // Load the view

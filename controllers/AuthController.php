@@ -9,11 +9,17 @@ require_once __DIR__ . '/../config/database.php';
 class AuthController {
     private $db;
     private $user;
+    private $emailService;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->user = new User($this->db);
+        
+        // Only initialize email service if PHPMailer is available
+        if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            $this->emailService = new EmailService();
+        }
     }
 
     /**
@@ -73,13 +79,20 @@ class AuthController {
                 $this->user->password = $password;
 
                 if ($this->user->register()) {
-                    // Auto login after registration
-                    $_SESSION['user_id'] = $this->user->id;
-                    $_SESSION['user_email'] = $email;
-                    $_SESSION['user_name'] = $full_name;
-
-                    setFlashMessage('Registro exitoso. Bienvenido a Control de Gastos!', 'success');
-                    header('Location: ' . BASE_URL . 'public/index.php?page=initial-setup');
+                    // Send verification email
+                    if ($this->emailService) {
+                        $this->emailService->sendVerificationEmail(
+                            $email, 
+                            $full_name, 
+                            $this->user->verification_token
+                        );
+                    }
+                    
+                    // Store email in session for verification page
+                    $_SESSION['pending_verification_email'] = $email;
+                    
+                    setFlashMessage('Registro exitoso. Por favor verifica tu correo electrónico para activar tu cuenta.', 'success');
+                    header('Location: ' . BASE_URL . 'public/index.php?page=verify-email');
                     exit();
                 } else {
                     $errors[] = "Error al registrar usuario. Intente nuevamente.";
@@ -110,6 +123,14 @@ class AuthController {
             $user = $this->user->login($email, $password);
 
             if ($user) {
+                // Check if email verification is required
+                if (isset($user['error']) && $user['error'] === 'email_not_verified') {
+                    $_SESSION['pending_verification_email'] = $user['email'];
+                    setFlashMessage('Debes verificar tu correo electrónico antes de iniciar sesión.', 'warning');
+                    header('Location: ' . BASE_URL . 'public/index.php?page=verify-email');
+                    exit();
+                }
+                
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_name'] = $user['full_name'];
@@ -156,13 +177,19 @@ class AuthController {
             $token = $this->user->generateResetToken($email);
 
             if ($token) {
-                // In a real application, send email with reset link
-                $reset_link = BASE_URL . 'public/index.php?page=reset-password&token=' . $token;
+                // Get user info
+                $user = $this->user->getUserByEmail($email);
                 
-                // For development, just show the link
-                $_SESSION['reset_link'] = $reset_link;
+                // Send password reset email
+                if ($this->emailService && $user) {
+                    $this->emailService->sendPasswordResetEmail(
+                        $email, 
+                        $user['full_name'], 
+                        $token
+                    );
+                }
                 
-                setFlashMessage('Se ha enviado un enlace de recuperación a su correo electrónico (válido por 5 minutos)', 'success');
+                setFlashMessage('Se ha enviado un enlace de recuperación a tu correo electrónico (válido por 5 minutos)', 'success');
                 header('Location: ' . BASE_URL . 'public/index.php?page=forgot-password');
                 exit();
             } else {
@@ -201,10 +228,14 @@ class AuthController {
             }
 
             if (empty($errors)) {
-                if ($this->user->resetPassword($token, $password)) {
+                $result = $this->user->resetPassword($token, $password);
+                
+                if ($result === true) {
                     setFlashMessage('Contraseña restablecida exitosamente. Ya puede iniciar sesión.', 'success');
                     header('Location: ' . BASE_URL . 'public/index.php?page=login');
                     exit();
+                } elseif ($result === 'same_password') {
+                    $errors[] = "La nueva contraseña debe ser diferente a la contraseña anterior";
                 } else {
                     $errors[] = "El enlace de recuperación ha expirado o no es válido";
                 }
@@ -212,6 +243,71 @@ class AuthController {
 
             $_SESSION['reset_errors'] = $errors;
             header('Location: ' . BASE_URL . 'public/index.php?page=reset-password&token=' . $token);
+            exit();
+        }
+    }
+
+    /**
+     * Verify email address
+     */
+    public function verifyEmail() {
+        if (isset($_GET['token'])) {
+            $token = sanitize($_GET['token']);
+            
+            $user = $this->user->verifyEmail($token);
+            
+            if ($user) {
+                // Auto login after verification
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_name'] = $user['full_name'];
+                
+                unset($_SESSION['pending_verification_email']);
+                
+                setFlashMessage('¡Correo verificado exitosamente! Bienvenido a Control de Gastos.', 'success');
+                header('Location: ' . BASE_URL . 'public/index.php?page=initial-setup');
+                exit();
+            } else {
+                setFlashMessage('El enlace de verificación ha expirado o no es válido.', 'error');
+                header('Location: ' . BASE_URL . 'public/index.php?page=verify-email');
+                exit();
+            }
+        }
+    }
+
+    /**
+     * Resend verification email
+     */
+    public function resendVerification() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = sanitize($_POST['email'] ?? '');
+            
+            if (empty($email)) {
+                setFlashMessage('Por favor ingrese su correo electrónico', 'error');
+                header('Location: ' . BASE_URL . 'public/index.php?page=verify-email');
+                exit();
+            }
+            
+            $token = $this->user->resendVerificationToken($email);
+            
+            if ($token) {
+                $user = $this->user->getUserByEmail($email);
+                
+                // Send verification email
+                if ($this->emailService && $user) {
+                    $this->emailService->sendVerificationEmail(
+                        $email, 
+                        $user['full_name'], 
+                        $token
+                    );
+                }
+                
+                setFlashMessage('Se ha reenviado el correo de verificación.', 'success');
+            } else {
+                setFlashMessage('No se pudo reenviar el correo. Verifica que tu cuenta no esté ya verificada.', 'error');
+            }
+            
+            header('Location: ' . BASE_URL . 'public/index.php?page=verify-email');
             exit();
         }
     }

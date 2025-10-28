@@ -8,16 +8,21 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// Load Composer autoloader if exists
+if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once dirname(__DIR__) . '/vendor/autoload.php';
+}
+
 // Base URL configuration
 define('BASE_URL', 'http://localhost/App-Control-Gastos/');
 define('BASE_PATH', dirname(__DIR__) . '/');
 
 // Email configuration (for password recovery)
-define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'your-email@gmail.com'); // Configure your email
-define('SMTP_PASSWORD', 'your-app-password'); // Configure your app password
-define('FROM_EMAIL', 'noreply@controlgastos.com');
+define('SMTP_HOST', 'mail.hazelhd.com');
+define('SMTP_PORT', 465);
+define('SMTP_USERNAME', 'no-reply@hazelhd.com'); // Configure your email
+define('SMTP_PASSWORD', 'esDECczn*HkOZe-Y'); // Configure your app password
+define('FROM_EMAIL', 'no-reply@hazelhd.com');
 define('FROM_NAME', 'Control de Gastos');
 
 // Password reset token validity (in minutes)

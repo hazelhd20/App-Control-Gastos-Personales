@@ -15,6 +15,9 @@ $profile = $profile_model->getByUserId($_SESSION['user_id']);
 $flash = getFlashMessage();
 $errors = $_SESSION['profile_errors'] ?? [];
 unset($_SESSION['profile_errors']);
+
+$password_errors = $_SESSION['password_errors'] ?? [];
+unset($_SESSION['password_errors']);
 ?>
 
 <div class="min-h-screen bg-gray-50 py-8">
@@ -230,6 +233,72 @@ unset($_SESSION['profile_errors']);
                             <button type="submit" 
                                     class="btn-primary py-2 px-6 rounded-lg font-semibold">
                                 <i class="fas fa-save mr-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Change Password Section -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                        <i class="fas fa-lock mr-2 text-blue-600"></i>Cambiar Contraseña
+                    </h2>
+
+                    <?php if (!empty($password_errors)): ?>
+                        <div class="mb-6 p-4 rounded-lg alert-danger">
+                            <ul class="list-disc list-inside text-sm">
+                                <?php foreach ($password_errors as $error): ?>
+                                    <li><?php echo htmlspecialchars($error); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="<?php echo BASE_URL; ?>public/index.php?action=change-password" method="POST" class="space-y-4">
+                        <div>
+                            <label for="current_password" class="block text-sm font-medium text-gray-700">
+                                Contraseña Actual *
+                            </label>
+                            <input id="current_password" name="current_password" type="password" required 
+                                   class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label for="new_password" class="block text-sm font-medium text-gray-700">
+                                Nueva Contraseña *
+                            </label>
+                            <input id="new_password" name="new_password" type="password" required 
+                                   class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">
+                                Mínimo 8 caracteres, debe incluir mayúsculas, números y caracteres especiales
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700">
+                                Confirmar Nueva Contraseña *
+                            </label>
+                            <input id="confirm_password" name="confirm_password" type="password" required 
+                                   class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        La nueva contraseña debe ser diferente a tu contraseña actual por seguridad.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" 
+                                    class="btn-primary py-2 px-6 rounded-lg font-semibold">
+                                <i class="fas fa-key mr-2"></i>Actualizar Contraseña
                             </button>
                         </div>
                     </form>

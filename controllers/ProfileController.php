@@ -209,5 +209,62 @@ class ProfileController {
             exit();
         }
     }
+
+    /**
+     * Change password
+     */
+    public function changePassword() {
+        requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = $_SESSION['user_id'];
+            $current_password = $_POST['current_password'] ?? '';
+            $new_password = $_POST['new_password'] ?? '';
+            $confirm_password = $_POST['confirm_password'] ?? '';
+
+            $errors = [];
+
+            if (empty($current_password)) {
+                $errors[] = "Debe ingresar su contraseña actual";
+            }
+
+            if (empty($new_password)) {
+                $errors[] = "La contraseña nueva es obligatoria";
+            } elseif (strlen($new_password) < 8) {
+                $errors[] = "La contraseña debe tener al menos 8 caracteres";
+            } elseif (!preg_match('/[A-Z]/', $new_password)) {
+                $errors[] = "La contraseña debe contener al menos una letra mayúscula";
+            } elseif (!preg_match('/[0-9]/', $new_password)) {
+                $errors[] = "La contraseña debe contener al menos un número";
+            } elseif (!preg_match('/[^A-Za-z0-9]/', $new_password)) {
+                $errors[] = "La contraseña debe contener al menos un carácter especial";
+            }
+
+            if ($new_password !== $confirm_password) {
+                $errors[] = "Las contraseñas no coinciden";
+            }
+
+            if (empty($errors)) {
+                $result = $this->user->updatePassword($user_id, $new_password, $current_password);
+
+                if ($result === true) {
+                    setFlashMessage('Contraseña actualizada exitosamente', 'success');
+                } elseif ($result === 'wrong_current_password') {
+                    $errors[] = "La contraseña actual es incorrecta";
+                } elseif ($result === 'same_password') {
+                    $errors[] = "La nueva contraseña debe ser diferente a la contraseña actual";
+                } else {
+                    $errors[] = "Error al actualizar la contraseña. Intente nuevamente.";
+                }
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['password_errors'] = $errors;
+            }
+
+            header('Location: ' . BASE_URL . 'public/index.php?page=profile');
+            exit();
+        }
+    }
 }
 
