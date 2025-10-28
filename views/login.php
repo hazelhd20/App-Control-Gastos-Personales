@@ -43,7 +43,7 @@ $flash = getFlashMessage();
                             <input id="password" name="password" type="password" required 
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                                    placeholder="••••••••">
-                            <span class="absolute right-3 top-3 toggle-password" onclick="togglePassword('password')">
+                            <span class="absolute right-3 top-3 toggle-password cursor-pointer">
                                 <i class="fas fa-eye text-gray-400"></i>
                             </span>
                         </div>
@@ -79,23 +79,6 @@ $flash = getFlashMessage();
         </div>
     </div>
 </div>
-
-<script>
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = event.currentTarget.querySelector('i');
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 

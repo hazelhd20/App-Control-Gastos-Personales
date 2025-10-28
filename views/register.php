@@ -80,7 +80,7 @@ unset($_SESSION['register_errors'], $_SESSION['register_data']);
                             <input id="password" name="password" type="password" required 
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="••••••••">
-                            <span class="absolute right-3 top-3 toggle-password" onclick="togglePassword('password')">
+                            <span class="absolute right-3 top-3 toggle-password cursor-pointer">
                                 <i class="fas fa-eye text-gray-400"></i>
                             </span>
                         </div>
@@ -97,7 +97,7 @@ unset($_SESSION['register_errors'], $_SESSION['register_data']);
                             <input id="confirm_password" name="confirm_password" type="password" required 
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="••••••••">
-                            <span class="absolute right-3 top-3 toggle-password" onclick="togglePassword('confirm_password')">
+                            <span class="absolute right-3 top-3 toggle-password cursor-pointer">
                                 <i class="fas fa-eye text-gray-400"></i>
                             </span>
                         </div>
@@ -124,23 +124,6 @@ unset($_SESSION['register_errors'], $_SESSION['register_data']);
         </div>
     </div>
 </div>
-
-<script>
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = event.currentTarget.querySelector('i');
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 

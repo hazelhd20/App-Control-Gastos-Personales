@@ -42,7 +42,7 @@ $flash = getFlashMessage();
 
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">
                     <i class="fas fa-list mr-3 text-blue-600"></i>Transacciones
@@ -50,7 +50,7 @@ $flash = getFlashMessage();
                 <p class="text-gray-600 mt-2">Historial de movimientos financieros</p>
             </div>
             <a href="<?php echo BASE_URL; ?>public/index.php?page=add-transaction" 
-               class="btn-primary py-3 px-6 rounded-lg font-semibold">
+               class="btn-primary py-3 px-6 rounded-lg font-semibold text-center sm:w-auto">
                 <i class="fas fa-plus mr-2"></i>Nueva Transacción
             </a>
         </div>
