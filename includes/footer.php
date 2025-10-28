@@ -1,5 +1,5 @@
     <!-- Scripts -->
-    <script src="<?php echo BASE_URL; ?>public/js/main.js"></script>
+    <script src="<?php echo ASSETS_URL; ?>js/main.js"></script>
     
     <script>
         // Flash message auto-hide

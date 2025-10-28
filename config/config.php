@@ -19,7 +19,13 @@ $host = $_SERVER['HTTP_HOST'];
 $scriptName = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = $protocol . '://' . $host . rtrim(str_replace('/public', '', $scriptName), '/') . '/';
 
+// Assets URL for static files (css, js, images)
+// If we're in the public directory, assets are relative to current directory
+// Otherwise, they're in the public subdirectory
+$assetsUrl = $protocol . '://' . $host . rtrim($scriptName, '/') . '/';
+
 define('BASE_URL', $baseUrl);
+define('ASSETS_URL', $assetsUrl);
 define('BASE_PATH', dirname(__DIR__) . '/');
 
 // Email config
