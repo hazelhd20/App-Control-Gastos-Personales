@@ -23,7 +23,7 @@ composer.phar
 composer.lock
 
 # Configuration Files (sensitive)
-config/database.php
+config/Database.php
 config/email.php
 
 # Log Files
