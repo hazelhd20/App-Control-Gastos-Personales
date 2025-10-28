@@ -115,7 +115,7 @@ class ProfileController {
     /**
      * Update profile
      */
-    public function update() {
+    public function updateProfile() {
         requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

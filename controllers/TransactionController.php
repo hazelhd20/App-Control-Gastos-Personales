@@ -22,7 +22,7 @@ class TransactionController {
     /**
      * Add new transaction
      */
-    public function add() {
+    public function addTransaction() {
         requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -137,7 +137,7 @@ class TransactionController {
     /**
      * Delete transaction
      */
-    public function delete() {
+    public function deleteTransaction() {
         requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -175,7 +175,7 @@ class TransactionController {
     /**
      * Export transactions to CSV
      */
-    public function export() {
+    public function exportTransactions() {
         requireLogin();
 
         $user_id = $_SESSION['user_id'];
