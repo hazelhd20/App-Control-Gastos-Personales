@@ -1,10 +1,18 @@
 RewriteEngine On
 
-# Prevent directory listing
-Options -Indexes
+# Auto-detect base path
+RewriteBase /
 
-# Route all requests through index.php
+# Redirect to index.php if file doesn't exist
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+RewriteRule ^(.*)$ index.php [QSA,L]
 
+# Security
+Options -Indexes
+
+# Block access to config and sensitive files
+<FilesMatch "\.(sql|json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

@@ -1,31 +1,34 @@
 <?php
 /**
- * General Configuration
+ * Auto Configuration
  */
 
-// Start session if not already started
+// Session
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Load Composer autoloader if exists
+// Composer autoloader
 if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
     require_once dirname(__DIR__) . '/vendor/autoload.php';
 }
 
-// Base URL configuration
-define('BASE_URL', 'http://localhost/App-Control-Gastos/');
+// Auto-detect base URL
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$scriptName = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$baseUrl = $protocol . '://' . $host . rtrim(str_replace('/public', '', $scriptName), '/') . '/';
+
+define('BASE_URL', $baseUrl);
 define('BASE_PATH', dirname(__DIR__) . '/');
 
-// Email configuration (for password recovery)
+// Email config
 define('SMTP_HOST', 'mail.hazelhd.com');
 define('SMTP_PORT', 465);
-define('SMTP_USERNAME', 'no-reply@hazelhd.com'); // Configure your email
-define('SMTP_PASSWORD', 'esDECczn*HkOZe-Y'); // Configure your app password
+define('SMTP_USERNAME', 'no-reply@hazelhd.com');
+define('SMTP_PASSWORD', 'esDECczn*HkOZe-Y');
 define('FROM_EMAIL', 'no-reply@hazelhd.com');
 define('FROM_NAME', 'Control de Gastos');
-
-// Password reset token validity (in minutes)
 define('TOKEN_VALIDITY', 5);
 
 // Timezone
@@ -52,16 +55,11 @@ spl_autoload_register(function ($class) {
     }
 });
 
-/**
- * Check if user is logged in
- */
+// Helper functions
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-/**
- * Redirect to login if not authenticated
- */
 function requireLogin() {
     if (!isLoggedIn()) {
         header('Location: ' . BASE_URL . 'public/index.php?page=login');
@@ -69,9 +67,6 @@ function requireLogin() {
     }
 }
 
-/**
- * Redirect to dashboard if already authenticated
- */
 function redirectIfAuthenticated() {
     if (isLoggedIn()) {
         header('Location: ' . BASE_URL . 'public/index.php?page=dashboard');
@@ -79,30 +74,16 @@ function redirectIfAuthenticated() {
     }
 }
 
-/**
- * Sanitize input
- */
 function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
-/**
- * Format currency
- */
 function formatCurrency($amount, $currency = 'MXN') {
-    $symbols = [
-        'MXN' => '$',
-        'USD' => '$',
-        'EUR' => '€'
-    ];
-    
+    $symbols = ['MXN' => '$', 'USD' => '$', 'EUR' => '€'];
     $symbol = $symbols[$currency] ?? '$';
     return $symbol . number_format($amount, 2);
 }
 
-/**
- * Get flash message
- */
 function getFlashMessage() {
     if (isset($_SESSION['flash_message'])) {
         $message = $_SESSION['flash_message'];
@@ -112,13 +93,9 @@ function getFlashMessage() {
     return null;
 }
 
-/**
- * Set flash message
- */
 function setFlashMessage($message, $type = 'success') {
     $_SESSION['flash_message'] = [
         'message' => $message,
         'type' => $type
     ];
 }
-

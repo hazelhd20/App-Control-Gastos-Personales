@@ -1,7 +1,21 @@
 RewriteEngine On
-RewriteBase /App-Control-Gastos/
 
-# Redirect to public folder
-RewriteRule ^$ public/ [L]
-RewriteRule (.*) public/$1 [L]
+# Block access to sensitive files and folders
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
+<FilesMatch "(composer\.json|composer\.lock|\.sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent directory browsing
+Options -Indexes
+
+# Protect config folder
+RedirectMatch 404 /config/.*
+RedirectMatch 404 /models/.*
+RedirectMatch 404 /controllers/.*
+RedirectMatch 404 /views/.*
