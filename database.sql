@@ -61,22 +61,38 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Table: expense_categories
 CREATE TABLE IF NOT EXISTS expense_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
+    user_id INT NULL,
+    name VARCHAR(50) NOT NULL,
+    type ENUM('expense', 'income') NOT NULL DEFAULT 'expense',
     icon VARCHAR(50) NULL,
-    color VARCHAR(7) NULL
+    color VARCHAR(7) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_category (user_id, name, type),
+    INDEX idx_user_type (user_id, type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Insert default expense categories
-INSERT INTO expense_categories (name, icon, color) VALUES
-('Alimentación', '🍔', '#FF6B6B'),
-('Transporte', '🚗', '#4ECDC4'),
-('Entretenimiento', '🎮', '#95E1D3'),
-('Vivienda', '🏠', '#F38181'),
-('Salud', '💊', '#AA96DA'),
-('Educación', '📚', '#FCBAD3'),
-('Ropa', '👔', '#A8D8EA'),
-('Servicios', '💡', '#FFAAA5'),
-('Otros', '📦', '#C7CEEA');
+-- Insert default expense categories (system-wide defaults)
+INSERT INTO expense_categories (user_id, name, type, icon, color) VALUES
+(NULL, 'Alimentación', 'expense', '🍔', '#FF6B6B'),
+(NULL, 'Transporte', 'expense', '🚗', '#4ECDC4'),
+(NULL, 'Entretenimiento', 'expense', '🎮', '#95E1D3'),
+(NULL, 'Vivienda', 'expense', '🏠', '#F38181'),
+(NULL, 'Salud', 'expense', '💊', '#AA96DA'),
+(NULL, 'Educación', 'expense', '📚', '#FCBAD3'),
+(NULL, 'Ropa', 'expense', '👔', '#A8D8EA'),
+(NULL, 'Servicios', 'expense', '💡', '#FFAAA5'),
+(NULL, 'Otros', 'expense', '📦', '#C7CEEA');
+
+-- Insert default income categories (system-wide defaults)
+INSERT INTO expense_categories (user_id, name, type, icon, color) VALUES
+(NULL, 'Salario', 'income', '💼', '#10B981'),
+(NULL, 'Freelance', 'income', '💻', '#3B82F6'),
+(NULL, 'Inversiones', 'income', '📈', '#8B5CF6'),
+(NULL, 'Venta', 'income', '💰', '#F59E0B'),
+(NULL, 'Regalo', 'income', '🎁', '#EC4899'),
+(NULL, 'Otros', 'income', '💵', '#14B8A6');
 
 -- Table: alerts
 CREATE TABLE IF NOT EXISTS alerts (

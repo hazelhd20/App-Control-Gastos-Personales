@@ -9,7 +9,9 @@ $db = $database->getConnection();
 $transaction_model = new Transaction($db);
 $profile_model = new FinancialProfile($db);
 
-$categories = $transaction_model->getCategories();
+// Get categories by type - will be updated dynamically with JS
+$expense_categories = $transaction_model->getCategories($_SESSION['user_id'], 'expense');
+$income_categories = $transaction_model->getCategories($_SESSION['user_id'], 'income');
 $profile = $profile_model->getByUserId($_SESSION['user_id']);
 
 $errors = $_SESSION['transaction_errors'] ?? [];
@@ -83,7 +85,7 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                            placeholder="0.00">
                 </div>
 
-                <!-- Category (for expenses) -->
+                <!-- Category (for expenses and income) -->
                 <div id="category_field">
                     <label for="category" class="block text-sm font-medium text-gray-700">
                         <i class="fas fa-tags mr-2 text-blue-600"></i>Categoría *
@@ -91,7 +93,7 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                     <select id="category" name="category" 
                             class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Selecciona una categoría</option>
-                        <?php foreach ($categories as $cat): ?>
+                        <?php foreach ($expense_categories as $cat): ?>
                             <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
                                     <?php echo ($old_data['category'] ?? '') === $cat['name'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($cat['icon'] . ' ' . $cat['name']); ?>
@@ -157,6 +159,28 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
 </div>
 
 <script>
+const expenseCategories = <?php echo json_encode($expense_categories); ?>;
+const incomeCategories = <?php echo json_encode($income_categories); ?>;
+
+function populateCategories(type) {
+    const categorySelect = document.getElementById('category');
+    const currentValue = categorySelect.value;
+    
+    // Clear existing options except the first one
+    categorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    
+    const categories = type === 'expense' ? expenseCategories : incomeCategories;
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.name;
+        option.textContent = cat.icon + ' ' + cat.name;
+        if (currentValue === cat.name) {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+}
+
 function toggleTransactionType() {
     const radios = document.querySelectorAll('.transaction-type-radio');
     const options = document.querySelectorAll('.transaction-type-option');
@@ -178,13 +202,15 @@ function toggleTransactionType() {
                 paymentMethodField.style.display = 'block';
                 categorySelect.required = true;
                 paymentMethodRadios.forEach(r => r.required = true);
+                populateCategories('expense');
             } else {
                 options[index].classList.add('border-green-500', 'bg-green-50');
                 typeInput.value = 'income';
-                categoryField.style.display = 'none';
+                categoryField.style.display = 'block';
                 paymentMethodField.style.display = 'none';
-                categorySelect.required = false;
+                categorySelect.required = true;
                 paymentMethodRadios.forEach(r => r.required = false);
+                populateCategories('income');
             }
         } else {
             options[index].classList.remove('active', 'border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50');
@@ -200,6 +226,11 @@ document.querySelectorAll('.transaction-type-option').forEach((option, index) =>
         radio.checked = true;
         toggleTransactionType();
     });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleTransactionType();
 });
 </script>
 

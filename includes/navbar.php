@@ -25,6 +25,10 @@ $current_page = $_GET['page'] ?? 'dashboard';
                    class="px-4 py-2 rounded-lg <?php echo $current_page === 'reports' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">
                     <i class="fas fa-chart-bar mr-2"></i>Reportes
                 </a>
+                <a href="<?php echo BASE_URL; ?>public/index.php?page=manage-categories" 
+                   class="px-4 py-2 rounded-lg <?php echo $current_page === 'manage-categories' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">
+                    <i class="fas fa-tags mr-2"></i>Categorías
+                </a>
                 <a href="<?php echo BASE_URL; ?>public/index.php?page=profile" 
                    class="px-4 py-2 rounded-lg <?php echo $current_page === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">
                     <i class="fas fa-user mr-2"></i>Perfil
@@ -58,6 +62,10 @@ $current_page = $_GET['page'] ?? 'dashboard';
             <a href="<?php echo BASE_URL; ?>public/index.php?page=reports" 
                class="block px-3 py-2 rounded-lg <?php echo $current_page === 'reports' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">
                 <i class="fas fa-chart-bar mr-2"></i>Reportes
+            </a>
+            <a href="<?php echo BASE_URL; ?>public/index.php?page=manage-categories" 
+               class="block px-3 py-2 rounded-lg <?php echo $current_page === 'manage-categories' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">
+                <i class="fas fa-tags mr-2"></i>Categorías
             </a>
             <a href="<?php echo BASE_URL; ?>public/index.php?page=profile" 
                class="block px-3 py-2 rounded-lg <?php echo $current_page === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'; ?>">

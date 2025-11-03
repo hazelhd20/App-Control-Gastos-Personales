@@ -221,12 +221,24 @@ class Transaction {
     }
 
     /**
-     * Get expense categories
+     * Get categories by type for a user (including defaults)
      */
-    public function getCategories() {
-        $query = "SELECT name, icon, color FROM expense_categories ORDER BY name";
+    public function getCategories($user_id = null, $type = 'expense') {
+        $query = "SELECT name, icon, color 
+                  FROM expense_categories 
+                  WHERE (user_id = :user_id OR user_id IS NULL)
+                  AND type = :type
+                  ORDER BY user_id DESC, name ASC";
+        
         $stmt = $this->conn->prepare($query);
+        if ($user_id) {
+            $stmt->bindParam(':user_id', $user_id);
+        } else {
+            $stmt->bindValue(':user_id', null, PDO::PARAM_NULL);
+        }
+        $stmt->bindParam(':type', $type);
         $stmt->execute();
+        
         return $stmt->fetchAll();
     }
 }

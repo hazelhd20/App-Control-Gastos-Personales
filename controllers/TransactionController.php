@@ -41,15 +41,12 @@ class TransactionController {
                 $errors[] = "El monto debe ser mayor a 0";
             }
 
-            if ($type === 'expense') {
-                if (empty($category)) {
-                    $errors[] = "La categoría es obligatoria";
-                }
-                if (empty($payment_method)) {
-                    $errors[] = "El medio de pago es obligatorio";
-                }
-            } elseif ($type === 'income') {
-                $category = 'Ingreso adicional';
+            if (empty($category)) {
+                $errors[] = "La categoría es obligatoria";
+            }
+            
+            if ($type === 'expense' && empty($payment_method)) {
+                $errors[] = "El medio de pago es obligatorio para gastos";
             }
 
             if (empty($errors)) {
