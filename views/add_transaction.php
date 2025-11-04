@@ -95,8 +95,10 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <option value="">Selecciona una categoría</option>
                         <?php foreach ($expense_categories as $cat): ?>
                             <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
+                                    data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
+                                    data-color="<?php echo htmlspecialchars($cat['color'] ?? ''); ?>"
                                     <?php echo ($old_data['category'] ?? '') === $cat['name'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($cat['icon'] . ' ' . $cat['name']); ?>
+                                <?php echo htmlspecialchars($cat['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -173,7 +175,9 @@ function populateCategories(type) {
     categories.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat.name;
-        option.textContent = cat.icon + ' ' + cat.name;
+        option.textContent = cat.name;
+        option.dataset.icon = cat.icon || '';
+        option.dataset.color = cat.color || '';
         if (currentValue === cat.name) {
             option.selected = true;
         }

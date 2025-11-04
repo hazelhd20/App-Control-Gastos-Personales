@@ -166,19 +166,19 @@ class Category {
     }
 
     /**
-     * Get available icons for a category type
+     * Get available icons for a category type (Font Awesome icons)
      */
     public static function getIconsByType($type) {
         if ($type === 'expense') {
             return [
-                '🍔', '🚗', '🏠', '💊', '📚', '👔', '💡', '🍕', '🍺', '🎬',
-                '🎮', '⚽', '🎨', '🛍️', '🧴', '🧼', '💰', '💵', '🎁', '📦',
-                '🚇', '✈️', '🏦', '🏥', '📱', '💻', '🖥️', '📺', '🎵', '📷'
+                'fa-utensils', 'fa-car', 'fa-home', 'fa-pills', 'fa-book', 'fa-tshirt', 'fa-lightbulb', 'fa-pizza-slice', 'fa-beer', 'fa-film',
+                'fa-gamepad', 'fa-futbol', 'fa-palette', 'fa-shopping-bag', 'fa-spray-can', 'fa-soap', 'fa-wallet', 'fa-dollar-sign', 'fa-gift', 'fa-box',
+                'fa-subway', 'fa-plane', 'fa-university', 'fa-hospital', 'fa-mobile-alt', 'fa-laptop', 'fa-desktop', 'fa-tv', 'fa-music', 'fa-camera'
             ];
         } else {
             return [
-                '💼', '💻', '📈', '💰', '🎁', '💵', '🏦', '💳', '📱', '🤝',
-                '🎓', '🏆', '⭐', '🎉', '🚀', '💡', '🔔', '🎯', '🌟', '✨'
+                'fa-briefcase', 'fa-laptop-code', 'fa-chart-line', 'fa-wallet', 'fa-gift', 'fa-dollar-sign', 'fa-university', 'fa-credit-card', 'fa-mobile-alt', 'fa-handshake',
+                'fa-graduation-cap', 'fa-trophy', 'fa-star', 'fa-birthday-cake', 'fa-rocket', 'fa-lightbulb', 'fa-bell', 'fa-bullseye', 'fa-gem', 'fa-magic'
             ];
         }
     }

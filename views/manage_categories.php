@@ -93,7 +93,7 @@ $flash = getFlashMessage();
                             echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
                                     data-icon="' . htmlspecialchars($icon) . '"
                                     onclick="selectIcon(this)">
-                                    <span class="text-2xl">' . $icon . '</span>
+                                    <i class="fas ' . htmlspecialchars($icon) . ' text-2xl"></i>
                                   </div>';
                         }
                         ?>
@@ -147,7 +147,7 @@ $flash = getFlashMessage();
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
                                 <div class="flex items-center flex-1">
-                                    <span class="text-2xl mr-3"><?php echo $cat['icon']; ?></span>
+                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-2xl mr-3" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
                                     <span class="font-medium text-gray-900"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
                                 <div class="flex items-center space-x-2">
@@ -187,7 +187,7 @@ $flash = getFlashMessage();
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
                                 <div class="flex items-center flex-1">
-                                    <span class="text-2xl mr-3"><?php echo $cat['icon']; ?></span>
+                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-2xl mr-3" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
                                     <span class="font-medium text-gray-900"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
                                 <div class="flex items-center space-x-2">
@@ -243,7 +243,7 @@ $flash = getFlashMessage();
                         echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
                                 data-icon="' . htmlspecialchars($icon) . '"
                                 onclick="selectEditIcon(this)">
-                                <span class="text-2xl">' . $icon . '</span>
+                                <i class="fas ' . htmlspecialchars($icon) . ' text-2xl"></i>
                               </div>';
                     }
                     ?>
@@ -284,41 +284,127 @@ $flash = getFlashMessage();
 </div>
 
 <script>
+// Helper function to convert hex to rgba with opacity
+function hexToRgba(hex, opacity) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 // Icon and Color Selection
 function selectIcon(element) {
+    const selectedColor = document.getElementById('selected_color').value;
     document.querySelectorAll('#iconGrid .icon-option').forEach(el => {
-        el.classList.remove('bg-blue-500', 'border-blue-500');
+        el.classList.remove('bg-blue-500', 'border-blue-500', 'selected-icon');
+        el.style.backgroundColor = '';
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
+        const icon = el.querySelector('i');
+        if (icon) {
+            icon.style.color = '';
+        }
     });
-    element.classList.add('bg-blue-500', 'border-blue-500');
+    
+    if (selectedColor) {
+        element.style.backgroundColor = hexToRgba(selectedColor, 0.25);
+        element.style.borderColor = selectedColor;
+        element.style.borderWidth = '2px';
+        const icon = element.querySelector('i');
+        if (icon) {
+            icon.style.color = selectedColor;
+        }
+    } else {
+        element.classList.add('bg-blue-500', 'border-blue-500');
+        const icon = element.querySelector('i');
+        if (icon) {
+            icon.style.color = '#3b82f6'; // Blue color
+        }
+    }
+    element.classList.add('selected-icon');
     document.getElementById('selected_icon').value = element.dataset.icon;
 }
 
 function selectColor(element) {
+    const selectedColor = element.dataset.color;
     document.querySelectorAll('#categoryForm .color-option').forEach(el => {
         el.classList.remove('border-gray-800', 'border-4');
         el.classList.add('border-transparent', 'border-2');
     });
     element.classList.remove('border-transparent', 'border-2');
     element.classList.add('border-gray-800', 'border-4');
-    document.getElementById('selected_color').value = element.dataset.color;
+    document.getElementById('selected_color').value = selectedColor;
+    
+    // Update selected icon color if one is selected
+    const selectedIcon = document.querySelector('#iconGrid .icon-option.selected-icon');
+    if (selectedIcon) {
+        selectedIcon.style.backgroundColor = hexToRgba(selectedColor, 0.25);
+        selectedIcon.style.borderColor = selectedColor;
+        selectedIcon.style.borderWidth = '2px';
+        selectedIcon.classList.remove('bg-blue-500', 'border-blue-500');
+        const icon = selectedIcon.querySelector('i');
+        if (icon) {
+            icon.style.color = selectedColor;
+        }
+    }
 }
 
 function selectEditIcon(element) {
+    const selectedColor = document.getElementById('edit_selected_color').value;
     document.querySelectorAll('#editIconGrid .icon-option').forEach(el => {
-        el.classList.remove('bg-blue-500', 'border-blue-500');
+        el.classList.remove('bg-blue-500', 'border-blue-500', 'selected-edit-icon');
+        el.style.backgroundColor = '';
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
+        const icon = el.querySelector('i');
+        if (icon) {
+            icon.style.color = '';
+        }
     });
-    element.classList.add('bg-blue-500', 'border-blue-500');
+    
+    if (selectedColor) {
+        element.style.backgroundColor = hexToRgba(selectedColor, 0.25);
+        element.style.borderColor = selectedColor;
+        element.style.borderWidth = '2px';
+        const icon = element.querySelector('i');
+        if (icon) {
+            icon.style.color = selectedColor;
+        }
+    } else {
+        element.classList.add('bg-blue-500', 'border-blue-500');
+        const icon = element.querySelector('i');
+        if (icon) {
+            icon.style.color = '#3b82f6'; // Blue color
+        }
+    }
+    element.classList.add('selected-edit-icon');
     document.getElementById('edit_selected_icon').value = element.dataset.icon;
 }
 
 function selectEditColor(element) {
+    const selectedColor = element.dataset.color;
     document.querySelectorAll('#editCategoryForm .color-option').forEach(el => {
         el.classList.remove('border-gray-800', 'border-4');
         el.classList.add('border-transparent', 'border-2');
     });
     element.classList.remove('border-transparent', 'border-2');
     element.classList.add('border-gray-800', 'border-4');
-    document.getElementById('edit_selected_color').value = element.dataset.color;
+    document.getElementById('edit_selected_color').value = selectedColor;
+    
+    // Update selected icon color if one is selected
+    const selectedIcon = document.querySelector('#editIconGrid .icon-option.selected-edit-icon');
+    if (selectedIcon) {
+        selectedIcon.style.backgroundColor = hexToRgba(selectedColor, 0.25);
+        selectedIcon.style.borderColor = selectedColor;
+        selectedIcon.style.borderWidth = '2px';
+        selectedIcon.classList.remove('bg-blue-500', 'border-blue-500');
+        const icon = selectedIcon.querySelector('i');
+        if (icon) {
+            icon.style.color = selectedColor;
+        }
+    }
 }
 
 // Update icon grid based on category type
@@ -336,12 +422,22 @@ function updateIconGrid() {
         div.className = 'icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition';
         div.dataset.icon = icon;
         div.onclick = function() { selectIcon(this); };
-        div.innerHTML = '<span class="text-2xl">' + icon + '</span>';
+        div.innerHTML = '<i class="fas ' + icon + ' text-2xl"></i>';
         grid.appendChild(div);
     });
     
     // Clear selected icon
     document.getElementById('selected_icon').value = '';
+    document.querySelectorAll('#iconGrid .icon-option').forEach(el => {
+        el.classList.remove('selected-icon', 'bg-blue-500', 'border-blue-500');
+        el.style.backgroundColor = '';
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
+        const icon = el.querySelector('i');
+        if (icon) {
+            icon.style.color = '';
+        }
+    });
 }
 
 // Edit Category
@@ -360,9 +456,32 @@ function editCategory(button) {
     // Highlight selected icon and color
     document.querySelectorAll('#editIconGrid .icon-option').forEach(el => {
         if (el.dataset.icon === icon) {
-            el.classList.add('bg-blue-500', 'border-blue-500');
+            if (color) {
+                el.style.backgroundColor = hexToRgba(color, 0.25);
+                el.style.borderColor = color;
+                el.style.borderWidth = '2px';
+                el.classList.remove('bg-blue-500', 'border-blue-500');
+                const iconElement = el.querySelector('i');
+                if (iconElement) {
+                    iconElement.style.color = color;
+                }
+            } else {
+                el.classList.add('bg-blue-500', 'border-blue-500');
+                const iconElement = el.querySelector('i');
+                if (iconElement) {
+                    iconElement.style.color = '#3b82f6';
+                }
+            }
+            el.classList.add('selected-edit-icon');
         } else {
-            el.classList.remove('bg-blue-500', 'border-blue-500');
+            el.classList.remove('bg-blue-500', 'border-blue-500', 'selected-edit-icon');
+            el.style.backgroundColor = '';
+            el.style.borderColor = '';
+            el.style.borderWidth = '';
+            const iconElement = el.querySelector('i');
+            if (iconElement) {
+                iconElement.style.color = '';
+            }
         }
     });
     
@@ -375,6 +494,18 @@ function editCategory(button) {
             el.classList.add('border-transparent', 'border-2');
         }
     });
+    
+    // Update icon color if icon is selected
+    const selectedEditIcon = document.querySelector('#editIconGrid .icon-option.selected-edit-icon');
+    if (selectedEditIcon && color) {
+        selectedEditIcon.style.backgroundColor = hexToRgba(color, 0.25);
+        selectedEditIcon.style.borderColor = color;
+        selectedEditIcon.style.borderWidth = '2px';
+        const iconElement = selectedEditIcon.querySelector('i');
+        if (iconElement) {
+            iconElement.style.color = color;
+        }
+    }
     
     document.getElementById('editModal').classList.remove('hidden');
     document.getElementById('editModal').classList.add('flex');
@@ -422,6 +553,11 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
 
 <style>
 .icon-option {
+    transition: all 0.2s ease;
+}
+
+.icon-option.selected-icon,
+.icon-option.selected-edit-icon {
     transition: all 0.2s ease;
 }
 </style>
