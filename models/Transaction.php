@@ -225,7 +225,7 @@ class Transaction {
      */
     public function getCategories($user_id = null, $type = 'expense') {
         $query = "SELECT name, icon, color 
-                  FROM expense_categories 
+                  FROM categories 
                   WHERE (user_id = :user_id OR user_id IS NULL)
                   AND type = :type
                   ORDER BY user_id DESC, name ASC";

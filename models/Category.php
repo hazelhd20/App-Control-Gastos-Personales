@@ -5,7 +5,7 @@
 
 class Category {
     private $conn;
-    private $table = 'expense_categories';
+    private $table = 'categories';
 
     public $id;
     public $user_id;

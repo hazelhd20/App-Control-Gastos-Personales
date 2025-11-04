@@ -12,7 +12,7 @@ Se ha implementado exitosamente un sistema completo de **gestión de categorías
 1. ✅ **models/Category.php** - Modelo completo de categorías
 2. ✅ **controllers/CategoryController.php** - Controlador con CRUD completo
 3. ✅ **views/manage_categories.php** - Interfaz de gestión con selector de iconos y colores
-4. ✅ **migrations/001_add_custom_categories.sql** - Migración de BD
+4. ✅ **migrations/002_update_icons_to_fontawesome.sql** - Migración para actualizar iconos
 5. ✅ **CUSTOM_CATEGORIES_IMPLEMENTATION.md** - Documentación técnica
 6. ✅ **IMPLEMENTACION_COMPLETA.md** - Guía completa
 
@@ -32,8 +32,8 @@ Se ha implementado exitosamente un sistema completo de **gestión de categorías
 # Para instalación nueva
 mysql -u root -p < database.sql
 
-# Para usuarios existentes
-mysql -u root -p control_gastos < migrations/001_add_custom_categories.sql
+# Para usuarios existentes (solo si tienen datos antiguos)
+mysql -u root -p control_gastos < migrations/002_update_icons_to_fontawesome.sql
 ```
 
 ### 2. Acceso

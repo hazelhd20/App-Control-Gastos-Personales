@@ -27,10 +27,10 @@ $flash = getFlashMessage();
                class="text-blue-600 hover:text-blue-700 inline-flex items-center mb-4">
                 <i class="fas fa-arrow-left mr-2"></i>Volver al Dashboard
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-tags mr-3 text-blue-600"></i>Gestionar Categorías
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                <i class="fas fa-tags mr-2 sm:mr-3 text-blue-600"></i>Gestionar Categorías
             </h1>
-            <p class="text-gray-600 mt-2">Crea y personaliza tus propias categorías para gastos e ingresos</p>
+            <p class="text-sm sm:text-base text-gray-600 mt-2">Crea y personaliza tus propias categorías para gastos e ingresos</p>
         </div>
 
         <?php if ($flash): ?>
@@ -50,8 +50,8 @@ $flash = getFlashMessage();
         <?php endif; ?>
 
         <!-- Add New Category Form -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">
+        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                 <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Agregar Nueva Categoría
             </h2>
             
@@ -86,14 +86,14 @@ $flash = getFlashMessage();
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Icono *
                     </label>
-                    <div id="iconGrid" class="grid grid-cols-10 gap-2 p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-64 overflow-y-auto">
+                    <div id="iconGrid" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-64 overflow-y-auto">
                         <?php
                         $icons = Category::getIconsByType('expense');
                         foreach ($icons as $icon) {
                             echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
                                     data-icon="' . htmlspecialchars($icon) . '"
                                     onclick="selectIcon(this)">
-                                    <i class="fas ' . htmlspecialchars($icon) . ' text-2xl"></i>
+                                    <i class="fas ' . htmlspecialchars($icon) . ' text-xl sm:text-2xl"></i>
                                   </div>';
                         }
                         ?>
@@ -106,11 +106,11 @@ $flash = getFlashMessage();
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Color *
                     </label>
-                    <div class="grid grid-cols-10 gap-2 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
                         <?php
                         $colors = Category::getColors();
                         foreach ($colors as $color) {
-                            echo '<div class="color-option cursor-pointer w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
+                            echo '<div class="color-option cursor-pointer w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
                                     data-color="' . htmlspecialchars($color) . '"
                                     style="background-color: ' . htmlspecialchars($color) . ';"
                                     onclick="selectColor(this)">
@@ -121,8 +121,8 @@ $flash = getFlashMessage();
                     <input type="hidden" id="selected_color" name="color" required>
                 </div>
 
-                <div class="flex justify-end">
-                    <button type="submit" class="btn-primary py-2 px-6 rounded-lg font-semibold">
+                <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-0">
+                    <button type="submit" class="btn-primary py-2 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base w-full sm:w-auto">
                         <i class="fas fa-save mr-2"></i>Guardar Categoría
                     </button>
                 </div>
@@ -130,33 +130,33 @@ $flash = getFlashMessage();
         </div>
 
         <!-- Existing Categories -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <!-- Expense Categories -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-arrow-up mr-2 text-red-600"></i>Categorías de Gastos
                 </h2>
                 
                 <?php if (!empty($expense_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($expense_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200 category-item" 
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200 category-item" 
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
-                                <div class="flex items-center flex-1">
-                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-2xl mr-3" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
-                                    <span class="font-medium text-gray-900"><?php echo htmlspecialchars($cat['name']); ?></span>
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    <span class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
                                     <button onclick="editCategory(this)" 
-                                            class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition">
+                                            class="p-2 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition text-sm sm:text-base">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button onclick="deleteCategory(<?php echo $cat['id']; ?>)" 
-                                            class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition">
+                                            class="p-2 sm:p-2 text-red-600 hover:bg-red-100 rounded-lg transition text-sm sm:text-base">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -172,31 +172,31 @@ $flash = getFlashMessage();
             </div>
 
             <!-- Income Categories -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-arrow-down mr-2 text-green-600"></i>Categorías de Ingresos
                 </h2>
                 
                 <?php if (!empty($income_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($income_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200 category-item"
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 category-item"
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
-                                <div class="flex items-center flex-1">
-                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-2xl mr-3" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
-                                    <span class="font-medium text-gray-900"><?php echo htmlspecialchars($cat['name']); ?></span>
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    <span class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
                                     <button onclick="editCategory(this)" 
-                                            class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition">
+                                            class="p-2 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition text-sm sm:text-base">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button onclick="deleteCategory(<?php echo $cat['id']; ?>)" 
-                                            class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition">
+                                            class="p-2 sm:p-2 text-red-600 hover:bg-red-100 rounded-lg transition text-sm sm:text-base">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -215,9 +215,9 @@ $flash = getFlashMessage();
 </div>
 
 <!-- Edit Category Modal -->
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
-        <h3 class="text-2xl font-bold text-gray-900 mb-6">
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl p-4 sm:p-6 lg:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
             <i class="fas fa-edit mr-2 text-blue-600"></i>Editar Categoría
         </h3>
         
@@ -236,14 +236,14 @@ $flash = getFlashMessage();
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Icono *
                 </label>
-                <div id="editIconGrid" class="grid grid-cols-10 gap-2 p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-64 overflow-y-auto">
+                <div id="editIconGrid" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-64 overflow-y-auto">
                     <?php
                     $icons = Category::getIconsByType('expense');
                     foreach ($icons as $icon) {
                         echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
                                 data-icon="' . htmlspecialchars($icon) . '"
                                 onclick="selectEditIcon(this)">
-                                <i class="fas ' . htmlspecialchars($icon) . ' text-2xl"></i>
+                                <i class="fas ' . htmlspecialchars($icon) . ' text-xl sm:text-2xl"></i>
                               </div>';
                     }
                     ?>
@@ -255,11 +255,11 @@ $flash = getFlashMessage();
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Color *
                 </label>
-                <div class="grid grid-cols-10 gap-2 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
                     <?php
                     $colors = Category::getColors();
                     foreach ($colors as $color) {
-                        echo '<div class="color-option cursor-pointer w-10 h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
+                        echo '<div class="color-option cursor-pointer w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
                                 data-color="' . htmlspecialchars($color) . '"
                                 style="background-color: ' . htmlspecialchars($color) . ';"
                                 onclick="selectEditColor(this)">
@@ -270,12 +270,12 @@ $flash = getFlashMessage();
                 <input type="hidden" id="edit_selected_color" name="color" required>
             </div>
 
-            <div class="flex justify-end space-x-4">
+            <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 sm:space-x-4">
                 <button type="button" onclick="closeEditModal()" 
-                        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        class="px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition text-sm sm:text-base w-full sm:w-auto">
                     Cancelar
                 </button>
-                <button type="submit" class="btn-primary py-2 px-6 rounded-lg font-semibold">
+                <button type="submit" class="btn-primary py-2 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base w-full sm:w-auto">
                     <i class="fas fa-save mr-2"></i>Guardar Cambios
                 </button>
             </div>
@@ -422,7 +422,7 @@ function updateIconGrid() {
         div.className = 'icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition';
         div.dataset.icon = icon;
         div.onclick = function() { selectIcon(this); };
-        div.innerHTML = '<i class="fas ' + icon + ' text-2xl"></i>';
+        div.innerHTML = '<i class="fas ' + icon + ' text-xl sm:text-2xl"></i>';
         grid.appendChild(div);
     });
     
@@ -554,11 +554,33 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
 <style>
 .icon-option {
     transition: all 0.2s ease;
+    min-width: 44px; /* Minimum touch target size */
+    min-height: 44px;
 }
 
 .icon-option.selected-icon,
 .icon-option.selected-edit-icon {
     transition: all 0.2s ease;
+}
+
+.color-option {
+    min-width: 44px; /* Minimum touch target size for mobile */
+    min-height: 44px;
+}
+
+@media (min-width: 640px) {
+    .color-option {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+    .category-item button {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 </style>
 

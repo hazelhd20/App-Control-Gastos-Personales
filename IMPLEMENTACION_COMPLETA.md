@@ -30,13 +30,13 @@ Se ha implementado exitosamente un sistema completo de gestión de categorías p
 - Visualización por tipo (gastos/ingresos)
 - Validación JavaScript
 
-### 4. **migrations/001_add_custom_categories.sql**
-- Migración para bases de datos existentes
-- Actualiza tabla `expense_categories`
-- Añade categorías de ingresos por defecto
+### 4. **migrations/002_update_icons_to_fontawesome.sql**
+- Migración para actualizar iconos de emojis a Font Awesome
+- Actualiza categorías por defecto y personalizadas
+- Agrega nuevas categorías por defecto
 
-### 5. **migrations/001_add_custom_categories_manual.sql**
-- Versión alternativa para MySQL antiguas
+### 5. **migrations/003_rename_table_to_categories.sql**
+- Renombra tabla `expense_categories` a `categories` (solo si aplica)
 - Comandos separados paso a paso
 
 ### 6. **CUSTOM_CATEGORIES_IMPLEMENTATION.md**
@@ -147,13 +147,17 @@ mysql -u root -p < database.sql
 
 ### Para Usuarios Existentes
 ```bash
-# Ejecutar migración
-mysql -u root -p control_gastos < migrations/001_add_custom_categories.sql
+# Ejecutar migración (solo si tienes datos antiguos con emojis)
+mysql -u root -p control_gastos < migrations/002_update_icons_to_fontawesome.sql
 ```
 
-**O manualmente:**
+**Si tienes la tabla `expense_categories` (instalaciones antiguas):**
 ```bash
-mysql -u root -p control_gastos < migrations/001_add_custom_categories_manual.sql
+# Primero renombra la tabla
+mysql -u root -p control_gastos < migrations/003_rename_table_to_categories.sql
+
+# Luego actualiza los iconos
+mysql -u root -p control_gastos < migrations/002_update_icons_to_fontawesome.sql
 ```
 
 ---

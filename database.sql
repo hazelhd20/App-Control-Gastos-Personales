@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     INDEX idx_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: expense_categories
-CREATE TABLE IF NOT EXISTS expense_categories (
+-- Table: categories
+CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NULL,
     name VARCHAR(50) NOT NULL,
@@ -73,26 +73,34 @@ CREATE TABLE IF NOT EXISTS expense_categories (
     INDEX idx_user_type (user_id, type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Insert default expense categories (system-wide defaults)
-INSERT INTO expense_categories (user_id, name, type, icon, color) VALUES
-(NULL, 'Alimentación', 'expense', '🍔', '#FF6B6B'),
-(NULL, 'Transporte', 'expense', '🚗', '#4ECDC4'),
-(NULL, 'Entretenimiento', 'expense', '🎮', '#95E1D3'),
-(NULL, 'Vivienda', 'expense', '🏠', '#F38181'),
-(NULL, 'Salud', 'expense', '💊', '#AA96DA'),
-(NULL, 'Educación', 'expense', '📚', '#FCBAD3'),
-(NULL, 'Ropa', 'expense', '👔', '#A8D8EA'),
-(NULL, 'Servicios', 'expense', '💡', '#FFAAA5'),
-(NULL, 'Otros', 'expense', '📦', '#C7CEEA');
+-- Insert default expense categories (system-wide defaults) with Font Awesome icons
+INSERT INTO categories (user_id, name, type, icon, color) VALUES
+(NULL, 'Alimentación', 'expense', 'fa-utensils', '#FF6B6B'),
+(NULL, 'Transporte', 'expense', 'fa-car', '#4ECDC4'),
+(NULL, 'Entretenimiento', 'expense', 'fa-gamepad', '#95E1D3'),
+(NULL, 'Vivienda', 'expense', 'fa-home', '#F38181'),
+(NULL, 'Salud', 'expense', 'fa-pills', '#AA96DA'),
+(NULL, 'Educación', 'expense', 'fa-book', '#FCBAD3'),
+(NULL, 'Ropa', 'expense', 'fa-tshirt', '#A8D8EA'),
+(NULL, 'Servicios', 'expense', 'fa-lightbulb', '#FFAAA5'),
+(NULL, 'Compras', 'expense', 'fa-shopping-bag', '#EF4444'),
+(NULL, 'Restaurantes', 'expense', 'fa-pizza-slice', '#6366F1'),
+(NULL, 'Deportes', 'expense', 'fa-futbol', '#84CC16'),
+(NULL, 'Tecnología', 'expense', 'fa-laptop', '#F97316'),
+(NULL, 'Viajes', 'expense', 'fa-plane', '#06B6D4'),
+(NULL, 'Bancos', 'expense', 'fa-university', '#3B82F6'),
+(NULL, 'Otros', 'expense', 'fa-box', '#C7CEEA');
 
--- Insert default income categories (system-wide defaults)
-INSERT INTO expense_categories (user_id, name, type, icon, color) VALUES
-(NULL, 'Salario', 'income', '💼', '#10B981'),
-(NULL, 'Freelance', 'income', '💻', '#3B82F6'),
-(NULL, 'Inversiones', 'income', '📈', '#8B5CF6'),
-(NULL, 'Venta', 'income', '💰', '#F59E0B'),
-(NULL, 'Regalo', 'income', '🎁', '#EC4899'),
-(NULL, 'Otros', 'income', '💵', '#14B8A6');
+-- Insert default income categories (system-wide defaults) with Font Awesome icons
+INSERT INTO categories (user_id, name, type, icon, color) VALUES
+(NULL, 'Salario', 'income', 'fa-briefcase', '#10B981'),
+(NULL, 'Freelance', 'income', 'fa-laptop-code', '#3B82F6'),
+(NULL, 'Inversiones', 'income', 'fa-chart-line', '#8B5CF6'),
+(NULL, 'Venta', 'income', 'fa-wallet', '#F59E0B'),
+(NULL, 'Regalo', 'income', 'fa-gift', '#EC4899'),
+(NULL, 'Bonificación', 'income', 'fa-trophy', '#EC4899'),
+(NULL, 'Préstamo', 'income', 'fa-handshake', '#14B8A6'),
+(NULL, 'Otros', 'income', 'fa-dollar-sign', '#14B8A6');
 
 -- Table: alerts
 CREATE TABLE IF NOT EXISTS alerts (

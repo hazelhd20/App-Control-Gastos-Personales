@@ -27,11 +27,10 @@ Se ha implementado un sistema completo de gestión de categorías personalizadas
    - Modal para editar categorías
    - Validación JavaScript
 
-4. **migrations/001_add_custom_categories.sql** - Migración de base de datos
-   - Actualiza la tabla `expense_categories`
-   - Añade soporte para `user_id` y `type`
-   - Añade restricciones y índices
-   - Inserta categorías de ingresos por defecto
+4. **migrations/002_update_icons_to_fontawesome.sql** - Migración de base de datos
+   - Actualiza iconos de emojis a Font Awesome
+   - Actualiza categorías por defecto y personalizadas
+   - Agrega nuevas categorías por defecto (15 gastos + 8 ingresos)
 
 ### Archivos Modificados
 1. **database.sql** - Esquema principal actualizado
@@ -129,7 +128,7 @@ Se ha implementado un sistema completo de gestión de categorías personalizadas
 ### Para Usuarios Existentes
 Ejecutar el archivo de migración:
 ```sql
-SOURCE migrations/001_add_custom_categories.sql;
+SOURCE migrations/002_update_icons_to_fontawesome.sql;
 ```
 
 ### Para Instalaciones Nuevas
