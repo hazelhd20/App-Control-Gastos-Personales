@@ -63,12 +63,48 @@ class ProfileController {
                 $errors[] = "Debe seleccionar un objetivo financiero";
             }
 
-            if ($financial_goal === 'ahorrar' && $savings_goal <= 0) {
-                $errors[] = "Debe ingresar una meta de ahorro";
-            }
+            // Validate financial goal feasibility
+            if (!empty($financial_goal)) {
+                $goal_validation = $this->profile->validateGoalFeasibility(
+                    $monthly_income,
+                    $financial_goal,
+                    $savings_goal,
+                    $savings_deadline,
+                    $debt_amount
+                );
 
-            if ($financial_goal === 'pagar_deudas' && $debt_amount <= 0) {
-                $errors[] = "Debe ingresar el monto de la deuda";
+                if (!$goal_validation['valid']) {
+                    $errors[] = $goal_validation['message'];
+                }
+
+                // Add warnings as errors (user must acknowledge)
+                if (!empty($goal_validation['warnings'])) {
+                    foreach ($goal_validation['warnings'] as $warning) {
+                        $errors[] = "⚠️ " . $warning;
+                    }
+                }
+
+                // Specific validations per goal type
+                if ($financial_goal === 'ahorrar') {
+                    if ($savings_goal <= 0) {
+                        $errors[] = "Debe ingresar una meta de ahorro mayor a 0";
+                    }
+                    if (!empty($savings_deadline)) {
+                        $deadline_date = new DateTime($savings_deadline);
+                        $today = new DateTime();
+                        if ($deadline_date <= $today) {
+                            $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                        }
+                    }
+                } elseif ($financial_goal === 'pagar_deudas') {
+                    if ($debt_amount <= 0) {
+                        $errors[] = "Debe ingresar el monto de la deuda mayor a 0";
+                    }
+                } elseif ($financial_goal === 'otro') {
+                    if (empty(trim($goal_description))) {
+                        $errors[] = "Debe describir su objetivo financiero cuando selecciona 'Otro'";
+                    }
+                }
             }
 
             // Calculate spending limit if auto
@@ -77,10 +113,29 @@ class ProfileController {
                     $monthly_income,
                     $financial_goal,
                     $savings_goal,
+                    $debt_amount,
+                    $savings_deadline
+                );
+            } else {
+                // Validate manual spending limit
+                $limit_validation = $this->profile->validateSpendingLimit(
+                    $spending_limit,
+                    $monthly_income,
+                    $financial_goal,
+                    $savings_goal,
                     $debt_amount
                 );
-            } elseif ($spending_limit <= 0) {
-                $errors[] = "El límite de gasto debe ser mayor a 0";
+
+                if (!$limit_validation['valid']) {
+                    $errors[] = $limit_validation['message'];
+                }
+
+                // Add warnings as errors (user must acknowledge)
+                if (!empty($limit_validation['warnings'])) {
+                    foreach ($limit_validation['warnings'] as $warning) {
+                        $errors[] = "⚠️ " . $warning;
+                    }
+                }
             }
 
             if (empty($errors)) {
