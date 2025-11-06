@@ -20,13 +20,13 @@ $password_errors = $_SESSION['password_errors'] ?? [];
 unset($_SESSION['password_errors']);
 ?>
 
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-50 py-6 sm:py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-user-circle mr-3 text-blue-600"></i>Mi Perfil
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                <i class="fas fa-user-circle mr-2 sm:mr-3 text-blue-600"></i>Mi Perfil
             </h1>
-            <p class="text-gray-600 mt-2">Administra tu información personal y configuración financiera</p>
+            <p class="text-sm sm:text-base text-gray-600 mt-2">Administra tu información personal y configuración financiera</p>
         </div>
 
         <?php if ($flash): ?>
@@ -45,23 +45,23 @@ unset($_SESSION['password_errors']);
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Summary Cards -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-6 text-white">
-                    <div class="flex items-center mb-4">
-                        <i class="fas fa-wallet text-3xl"></i>
-                        <div class="ml-4">
-                            <p class="text-sm opacity-90">Ingreso Mensual</p>
-                            <p class="text-2xl font-bold">
+            <div class="lg:col-span-1 space-y-4 sm:space-y-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                    <div class="flex items-center mb-3 sm:mb-4">
+                        <i class="fas fa-wallet text-2xl sm:text-3xl"></i>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm opacity-90">Ingreso Mensual</p>
+                            <p class="text-xl sm:text-2xl font-bold">
                                 <?php echo formatCurrency($profile['monthly_income'], $profile['currency']); ?>
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                         <i class="fas fa-bullseye mr-2 text-blue-600"></i>Objetivo Financiero
                     </h3>
                     <div class="space-y-2">
@@ -89,29 +89,29 @@ unset($_SESSION['password_errors']);
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                         <i class="fas fa-chart-line mr-2 text-blue-600"></i>Límite de Gasto
                     </h3>
-                    <p class="text-2xl font-bold text-blue-600">
+                    <p class="text-xl sm:text-2xl font-bold text-blue-600">
                         <?php echo formatCurrency($profile['spending_limit'], $profile['currency']); ?>
                     </p>
-                    <p class="text-sm text-gray-600 mt-2">por mes</p>
+                    <p class="text-xs sm:text-sm text-gray-600 mt-2">por mes</p>
                 </div>
             </div>
 
             <!-- Profile Form -->
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
                         <i class="fas fa-edit mr-2 text-blue-600"></i>Editar Perfil
                     </h2>
 
-                    <form action="<?php echo BASE_URL; ?>public/index.php?action=update-profile" method="POST" class="space-y-6">
+                    <form action="<?php echo BASE_URL; ?>public/index.php?action=update-profile" method="POST" class="space-y-5 sm:space-y-6">
                         <!-- Personal Information -->
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Información Personal</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                     <label for="full_name" class="block text-sm font-medium text-gray-700">
                                         Nombre Completo *
@@ -148,9 +148,9 @@ unset($_SESSION['password_errors']);
                         </div>
 
                         <!-- Financial Information -->
-                        <div class="border-t pt-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Financiera</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border-t pt-4 sm:pt-6">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Información Financiera</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                     <label for="monthly_income" class="block text-sm font-medium text-gray-700">
                                         Ingreso Mensual *
@@ -229,9 +229,9 @@ unset($_SESSION['password_errors']);
                             </div>
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-0 pt-4">
                             <button type="submit" 
-                                    class="btn-primary py-2 px-6 rounded-lg font-semibold">
+                                    class="btn-primary py-2 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base w-full sm:w-auto">
                                 <i class="fas fa-save mr-2"></i>Guardar Cambios
                             </button>
                         </div>
@@ -239,8 +239,8 @@ unset($_SESSION['password_errors']);
                 </div>
 
                 <!-- Change Password Section -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mt-4 sm:mt-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
                         <i class="fas fa-lock mr-2 text-blue-600"></i>Cambiar Contraseña
                     </h2>
 
@@ -254,7 +254,7 @@ unset($_SESSION['password_errors']);
                         </div>
                     <?php endif; ?>
 
-                    <form action="<?php echo BASE_URL; ?>public/index.php?action=change-password" method="POST" class="space-y-4">
+                    <form action="<?php echo BASE_URL; ?>public/index.php?action=change-password" method="POST" class="space-y-3 sm:space-y-4">
                         <div>
                             <label for="current_password" class="block text-sm font-medium text-gray-700">
                                 Contraseña Actual *
@@ -295,9 +295,9 @@ unset($_SESSION['password_errors']);
                             </div>
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-0 pt-4">
                             <button type="submit" 
-                                    class="btn-primary py-2 px-6 rounded-lg font-semibold">
+                                    class="btn-primary py-2 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base w-full sm:w-auto">
                                 <i class="fas fa-key mr-2"></i>Actualizar Contraseña
                             </button>
                         </div>

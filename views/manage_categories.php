@@ -23,10 +23,6 @@ $flash = getFlashMessage();
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
-            <a href="<?php echo BASE_URL; ?>public/index.php?page=dashboard" 
-               class="text-blue-600 hover:text-blue-700 inline-flex items-center mb-4">
-                <i class="fas fa-arrow-left mr-2"></i>Volver al Dashboard
-            </a>
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
                 <i class="fas fa-tags mr-2 sm:mr-3 text-blue-600"></i>Gestionar Categorías
             </h1>
@@ -90,9 +86,11 @@ $flash = getFlashMessage();
                         <?php
                         $icons = Category::getIconsByType('expense');
                         foreach ($icons as $icon) {
-                            echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
+                            echo '<div class="icon-option cursor-pointer p-2 text-center rounded border border-transparent transition" 
                                     data-icon="' . htmlspecialchars($icon) . '"
-                                    onclick="selectIcon(this)">
+                                    onclick="selectIcon(this)"
+                                    onmouseenter="handleIconHover(this, true)"
+                                    onmouseleave="handleIconHover(this, false)">
                                     <i class="fas ' . htmlspecialchars($icon) . ' text-xl sm:text-2xl"></i>
                                   </div>';
                         }
@@ -106,13 +104,13 @@ $flash = getFlashMessage();
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Color *
                     </label>
-                    <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 justify-items-center items-center">
                         <?php
                         $colors = Category::getColors();
                         foreach ($colors as $color) {
-                            echo '<div class="color-option cursor-pointer w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
+                            echo '<div class="color-option cursor-pointer rounded-full border-2 border-transparent hover:border-gray-600 transition flex items-center justify-center" 
                                     data-color="' . htmlspecialchars($color) . '"
-                                    style="background-color: ' . htmlspecialchars($color) . ';"
+                                    style="background-color: ' . htmlspecialchars($color) . '; width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem;"
                                     onclick="selectColor(this)">
                                   </div>';
                         }
@@ -240,9 +238,11 @@ $flash = getFlashMessage();
                     <?php
                     $icons = Category::getIconsByType('expense');
                     foreach ($icons as $icon) {
-                        echo '<div class="icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition" 
+                        echo '<div class="icon-option cursor-pointer p-2 text-center rounded border border-transparent transition" 
                                 data-icon="' . htmlspecialchars($icon) . '"
-                                onclick="selectEditIcon(this)">
+                                onclick="selectEditIcon(this)"
+                                onmouseenter="handleEditIconHover(this, true)"
+                                onmouseleave="handleEditIconHover(this, false)">
                                 <i class="fas ' . htmlspecialchars($icon) . ' text-xl sm:text-2xl"></i>
                               </div>';
                     }
@@ -255,13 +255,13 @@ $flash = getFlashMessage();
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Color *
                 </label>
-                <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
+                <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 justify-items-center items-center">
                     <?php
                     $colors = Category::getColors();
                     foreach ($colors as $color) {
-                        echo '<div class="color-option cursor-pointer w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-transparent hover:border-gray-600 transition" 
+                        echo '<div class="color-option cursor-pointer rounded-full border-2 border-transparent hover:border-gray-600 transition flex items-center justify-center" 
                                 data-color="' . htmlspecialchars($color) . '"
-                                style="background-color: ' . htmlspecialchars($color) . ';"
+                                style="background-color: ' . htmlspecialchars($color) . '; width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem;"
                                 onclick="selectEditColor(this)">
                               </div>';
                     }
@@ -294,6 +294,42 @@ function hexToRgba(hex, opacity) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
+// Handle icon hover
+function handleIconHover(element, isEntering) {
+    // Don't apply hover if icon is selected
+    if (element.classList.contains('selected-icon')) {
+        return;
+    }
+    
+    if (isEntering) {
+        element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+        element.style.borderColor = '#3b82f6';
+        element.style.borderWidth = '1px';
+    } else {
+        element.style.backgroundColor = '';
+        element.style.borderColor = '';
+        element.style.borderWidth = '';
+    }
+}
+
+// Handle edit icon hover
+function handleEditIconHover(element, isEntering) {
+    // Don't apply hover if icon is selected
+    if (element.classList.contains('selected-edit-icon')) {
+        return;
+    }
+    
+    if (isEntering) {
+        element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+        element.style.borderColor = '#3b82f6';
+        element.style.borderWidth = '1px';
+    } else {
+        element.style.backgroundColor = '';
+        element.style.borderColor = '';
+        element.style.borderWidth = '';
+    }
+}
+
 // Icon and Color Selection
 function selectIcon(element) {
     const selectedColor = document.getElementById('selected_color').value;
@@ -317,7 +353,9 @@ function selectIcon(element) {
             icon.style.color = selectedColor;
         }
     } else {
-        element.classList.add('bg-blue-500', 'border-blue-500');
+        element.style.backgroundColor = 'rgba(59, 130, 246, 0.25)';
+        element.style.borderColor = '#3b82f6';
+        element.style.borderWidth = '2px';
         const icon = element.querySelector('i');
         if (icon) {
             icon.style.color = '#3b82f6'; // Blue color
@@ -330,11 +368,13 @@ function selectIcon(element) {
 function selectColor(element) {
     const selectedColor = element.dataset.color;
     document.querySelectorAll('#categoryForm .color-option').forEach(el => {
-        el.classList.remove('border-gray-800', 'border-4');
+        el.classList.remove('border-gray-800', 'border-4', 'selected-color');
         el.classList.add('border-transparent', 'border-2');
+        el.style.transform = '';
+        el.style.boxShadow = '';
     });
     element.classList.remove('border-transparent', 'border-2');
-    element.classList.add('border-gray-800', 'border-4');
+    element.classList.add('border-gray-800', 'border-4', 'selected-color');
     document.getElementById('selected_color').value = selectedColor;
     
     // Update selected icon color if one is selected
@@ -373,7 +413,9 @@ function selectEditIcon(element) {
             icon.style.color = selectedColor;
         }
     } else {
-        element.classList.add('bg-blue-500', 'border-blue-500');
+        element.style.backgroundColor = 'rgba(59, 130, 246, 0.25)';
+        element.style.borderColor = '#3b82f6';
+        element.style.borderWidth = '2px';
         const icon = element.querySelector('i');
         if (icon) {
             icon.style.color = '#3b82f6'; // Blue color
@@ -386,11 +428,13 @@ function selectEditIcon(element) {
 function selectEditColor(element) {
     const selectedColor = element.dataset.color;
     document.querySelectorAll('#editCategoryForm .color-option').forEach(el => {
-        el.classList.remove('border-gray-800', 'border-4');
+        el.classList.remove('border-gray-800', 'border-4', 'selected-color');
         el.classList.add('border-transparent', 'border-2');
+        el.style.transform = '';
+        el.style.boxShadow = '';
     });
     element.classList.remove('border-transparent', 'border-2');
-    element.classList.add('border-gray-800', 'border-4');
+    element.classList.add('border-gray-800', 'border-4', 'selected-color');
     document.getElementById('edit_selected_color').value = selectedColor;
     
     // Update selected icon color if one is selected
@@ -419,9 +463,11 @@ function updateIconGrid() {
     
     icons.forEach(icon => {
         const div = document.createElement('div');
-        div.className = 'icon-option cursor-pointer p-2 text-center rounded hover:bg-blue-100 border border-transparent hover:border-blue-500 transition';
+        div.className = 'icon-option cursor-pointer p-2 text-center rounded border border-transparent transition';
         div.dataset.icon = icon;
         div.onclick = function() { selectIcon(this); };
+        div.onmouseenter = function() { handleIconHover(this, true); };
+        div.onmouseleave = function() { handleIconHover(this, false); };
         div.innerHTML = '<i class="fas ' + icon + ' text-xl sm:text-2xl"></i>';
         grid.appendChild(div);
     });
@@ -487,11 +533,15 @@ function editCategory(button) {
     
     document.querySelectorAll('#editCategoryForm .color-option').forEach(el => {
         if (el.dataset.color === color) {
-            el.classList.add('border-gray-800', 'border-4');
+            el.classList.add('border-gray-800', 'border-4', 'selected-color');
             el.classList.remove('border-transparent', 'border-2');
+            el.style.transform = '';
+            el.style.boxShadow = '';
         } else {
-            el.classList.remove('border-gray-800', 'border-4');
+            el.classList.remove('border-gray-800', 'border-4', 'selected-color');
             el.classList.add('border-transparent', 'border-2');
+            el.style.transform = '';
+            el.style.boxShadow = '';
         }
     });
     
@@ -561,17 +611,56 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
 .icon-option.selected-icon,
 .icon-option.selected-edit-icon {
     transition: all 0.2s ease;
+    pointer-events: auto;
+}
+
+.icon-option.selected-icon:hover,
+.icon-option.selected-edit-icon:hover {
+    /* Keep selected styles on hover, but slightly enhance */
+    opacity: 0.9;
+    transform: scale(1.05);
 }
 
 .color-option {
-    min-width: 44px; /* Minimum touch target size for mobile */
-    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover:not(.selected-color) {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option.selected-color {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+}
+
+.color-option.selected-color:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure consistent sizing across breakpoints */
+@media (max-width: 640px) {
+    .color-option {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        min-width: 2.5rem !important;
+        min-height: 2.5rem !important;
+    }
 }
 
 @media (min-width: 640px) {
     .color-option {
-        min-width: 40px;
-        min-height: 40px;
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+        min-width: 2.75rem !important;
+        min-height: 2.75rem !important;
     }
 }
 

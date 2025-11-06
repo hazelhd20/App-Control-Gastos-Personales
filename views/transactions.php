@@ -40,17 +40,17 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
 $flash = getFlashMessage();
 ?>
 
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-50 py-6 sm:py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">
-                    <i class="fas fa-list mr-3 text-blue-600"></i>Transacciones
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <i class="fas fa-list mr-2 sm:mr-3 text-blue-600"></i>Transacciones
                 </h1>
-                <p class="text-gray-600 mt-2">Historial de movimientos financieros</p>
+                <p class="text-sm sm:text-base text-gray-600 mt-2">Historial de movimientos financieros</p>
             </div>
             <a href="<?php echo BASE_URL; ?>public/index.php?page=add-transaction" 
-               class="btn-primary py-3 px-6 rounded-lg font-semibold text-center sm:w-auto">
+               class="btn-primary py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-center text-sm sm:text-base w-full sm:w-auto">
                 <i class="fas fa-plus mr-2"></i>Nueva Transacción
             </a>
         </div>
@@ -62,36 +62,36 @@ $flash = getFlashMessage();
         <?php endif; ?>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <p class="text-sm text-gray-600 mb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <p class="text-xs sm:text-sm text-gray-600 mb-2">
                     <i class="fas fa-arrow-down text-green-600 mr-2"></i>Ingresos
                 </p>
-                <p class="text-2xl font-bold text-green-600">
+                <p class="text-xl sm:text-2xl font-bold text-green-600">
                     <?php echo formatCurrency($summary['total_income'] ?? 0, $profile['currency']); ?>
                 </p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <p class="text-sm text-gray-600 mb-2">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <p class="text-xs sm:text-sm text-gray-600 mb-2">
                     <i class="fas fa-arrow-up text-red-600 mr-2"></i>Gastos
                 </p>
-                <p class="text-2xl font-bold text-red-600">
+                <p class="text-xl sm:text-2xl font-bold text-red-600">
                     <?php echo formatCurrency($summary['total_expenses'] ?? 0, $profile['currency']); ?>
                 </p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <p class="text-sm text-gray-600 mb-2">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <p class="text-xs sm:text-sm text-gray-600 mb-2">
                     <i class="fas fa-receipt mr-2 text-blue-600"></i>Total de Transacciones
                 </p>
-                <p class="text-2xl font-bold text-blue-600">
+                <p class="text-xl sm:text-2xl font-bold text-blue-600">
                     <?php echo count($transactions); ?>
                 </p>
             </div>
         </div>
 
         <!-- Filters and Export -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+            <form method="GET" action="" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <input type="hidden" name="page" value="transactions">
                 
                 <div>
@@ -149,13 +149,13 @@ $flash = getFlashMessage();
                     </select>
                 </div>
 
-                <div class="flex items-end space-x-2">
+                <div class="flex items-end gap-2 sm:space-x-2 sm:col-span-2 lg:col-span-1">
                     <button type="submit" 
-                            class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                            class="flex-1 bg-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
                         <i class="fas fa-filter mr-2"></i>Filtrar
                     </button>
                     <a href="<?php echo BASE_URL; ?>public/index.php?action=export-transactions&year=<?php echo $year; ?>&month=<?php echo $month; ?>" 
-                       class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">
+                       class="bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 transition text-sm sm:text-base flex items-center justify-center">
                         <i class="fas fa-download"></i>
                     </a>
                 </div>
@@ -169,22 +169,22 @@ $flash = getFlashMessage();
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b-2 border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Fecha
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Categoría
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Descripción
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Método
                                 </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Monto
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Acciones
                                 </th>
                             </tr>
@@ -192,19 +192,19 @@ $flash = getFlashMessage();
                         <tbody class="bg-white divide-y divide-gray-200">
                             <?php foreach ($transactions as $trans): ?>
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                                         <?php echo date('d/m/Y', strtotime($trans['transaction_date'])); ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                                        <span class="px-2 sm:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                                                      <?php echo $trans['type'] === 'expense' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'; ?>">
                                             <?php echo htmlspecialchars($trans['category']); ?>
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                    <td class="hidden md:table-cell px-6 py-3 sm:py-4 text-sm text-gray-600 max-w-xs truncate">
                                         <?php echo htmlspecialchars($trans['description'] ?: '-'); ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <td class="hidden lg:table-cell px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                                         <?php 
                                         if ($trans['payment_method']) {
                                             echo $trans['payment_method'] === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta';
@@ -213,17 +213,17 @@ $flash = getFlashMessage();
                                         }
                                         ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold 
+                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-bold 
                                                <?php echo $trans['type'] === 'expense' ? 'text-red-600' : 'text-green-600'; ?>">
                                         <?php echo $trans['type'] === 'expense' ? '-' : '+'; ?>
                                         <?php echo formatCurrency($trans['amount'], $profile['currency']); ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center text-sm font-medium">
                                         <form method="POST" action="<?php echo BASE_URL; ?>public/index.php?action=delete-transaction" 
                                               onsubmit="return confirm('¿Estás seguro de eliminar esta transacción?');" class="inline">
                                             <input type="hidden" name="transaction_id" value="<?php echo $trans['id']; ?>">
-                                            <button type="submit" class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
+                                            <button type="submit" class="text-red-600 hover:text-red-900 p-1 sm:p-2">
+                                                <i class="fas fa-trash text-sm sm:text-base"></i>
                                             </button>
                                         </form>
                                     </td>

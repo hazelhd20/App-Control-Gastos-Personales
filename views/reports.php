@@ -20,18 +20,18 @@ $summary = $transaction_model->getMonthlySummary($user_id, $year, $month);
 $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month);
 ?>
 
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-50 py-6 sm:py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-chart-bar mr-3 text-blue-600"></i>Reportes y Análisis
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                <i class="fas fa-chart-bar mr-2 sm:mr-3 text-blue-600"></i>Reportes y Análisis
             </h1>
-            <p class="text-gray-600 mt-2">Visualiza tus finanzas con gráficos detallados</p>
+            <p class="text-sm sm:text-base text-gray-600 mt-2">Visualiza tus finanzas con gráficos detallados</p>
         </div>
 
         <!-- Period Selector -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <form method="GET" action="" class="flex flex-wrap items-end gap-4">
+        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+            <form method="GET" action="" class="flex flex-wrap items-end gap-3 sm:gap-4">
                 <input type="hidden" name="page" value="reports">
                 
                 <div>
@@ -70,24 +70,24 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
         </div>
 
         <!-- Summary Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-6 text-white">
-                <p class="text-sm opacity-90 mb-2">Ingresos del Mes</p>
-                <p class="text-3xl font-bold">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <p class="text-xs sm:text-sm opacity-90 mb-2">Ingresos del Mes</p>
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo formatCurrency($summary['total_income'] ?? 0, $profile['currency']); ?>
                 </p>
             </div>
 
-            <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg p-6 text-white">
-                <p class="text-sm opacity-90 mb-2">Gastos del Mes</p>
-                <p class="text-3xl font-bold">
+            <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <p class="text-xs sm:text-sm opacity-90 mb-2">Gastos del Mes</p>
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo formatCurrency($summary['total_expenses'] ?? 0, $profile['currency']); ?>
                 </p>
             </div>
 
-            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-6 text-white">
-                <p class="text-sm opacity-90 mb-2">Balance</p>
-                <p class="text-3xl font-bold">
+            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <p class="text-xs sm:text-sm opacity-90 mb-2">Balance</p>
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php 
                     $balance = ($summary['total_income'] ?? 0) - ($summary['total_expenses'] ?? 0);
                     echo formatCurrency($balance, $profile['currency']); 
@@ -95,9 +95,9 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
                 </p>
             </div>
 
-            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg p-6 text-white">
-                <p class="text-sm opacity-90 mb-2">Promedio Diario</p>
-                <p class="text-3xl font-bold">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <p class="text-xs sm:text-sm opacity-90 mb-2">Promedio Diario</p>
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php 
                     $days_in_month = date('t', strtotime("$year-$month-01"));
                     $daily_avg = $days_in_month > 0 ? ($summary['total_expenses'] ?? 0) / $days_in_month : 0;
@@ -108,18 +108,18 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
         </div>
 
         <!-- Charts Row 1 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
             <!-- Monthly Comparison Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-chart-line mr-2 text-blue-600"></i>Comparación Mensual
                 </h3>
                 <canvas id="monthlyComparisonChart"></canvas>
             </div>
 
             <!-- Expenses by Category -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-chart-pie mr-2 text-blue-600"></i>Gastos por Categoría
                 </h3>
                 <?php if (!empty($categories)): ?>
@@ -134,24 +134,24 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
         </div>
 
         <!-- Charts Row 2 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
             <!-- Payment Methods Distribution -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-credit-card mr-2 text-blue-600"></i>Distribución por Método de Pago
                 </h3>
                 <?php if (($summary['total_expenses'] ?? 0) > 0): ?>
                     <canvas id="paymentMethodChart"></canvas>
-                    <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
                         <div class="text-center p-3 bg-blue-50 rounded-lg">
-                            <p class="text-sm text-gray-600">Efectivo</p>
-                            <p class="text-xl font-bold text-blue-600">
+                            <p class="text-xs sm:text-sm text-gray-600">Efectivo</p>
+                            <p class="text-lg sm:text-xl font-bold text-blue-600">
                                 <?php echo formatCurrency($summary['cash_expenses'] ?? 0, $profile['currency']); ?>
                             </p>
                         </div>
                         <div class="text-center p-3 bg-green-50 rounded-lg">
-                            <p class="text-sm text-gray-600">Tarjeta</p>
-                            <p class="text-xl font-bold text-green-600">
+                            <p class="text-xs sm:text-sm text-gray-600">Tarjeta</p>
+                            <p class="text-lg sm:text-xl font-bold text-green-600">
                                 <?php echo formatCurrency($summary['card_expenses'] ?? 0, $profile['currency']); ?>
                             </p>
                         </div>
@@ -165,12 +165,12 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
             </div>
 
             <!-- Category Breakdown -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-list mr-2 text-blue-600"></i>Desglose por Categoría
                 </h3>
                 <?php if (!empty($categories)): ?>
-                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                    <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
                         <?php 
                         $total = array_sum(array_column($categories, 'total'));
                         foreach ($categories as $cat): 
@@ -206,26 +206,26 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
 
         <!-- Goal Progress (if applicable) -->
         <?php if ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal']): ?>
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-bullseye mr-2 text-blue-600"></i>Progreso de Meta de Ahorro
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Meta de Ahorro</p>
-                        <p class="text-3xl font-bold text-blue-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Meta de Ahorro</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-blue-600">
                             <?php echo formatCurrency($profile['savings_goal'], $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Ahorro Actual</p>
-                        <p class="text-3xl font-bold text-green-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro Actual</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-green-600">
                             <?php echo formatCurrency($balance, $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Progreso</p>
-                        <p class="text-3xl font-bold text-purple-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Progreso</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-purple-600">
                             <?php 
                             $progress = $profile['savings_goal'] > 0 ? ($balance / $profile['savings_goal']) * 100 : 0;
                             echo round($progress) . '%'; 
@@ -241,26 +241,26 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
         <?php endif; ?>
 
         <?php if ($profile['financial_goal'] === 'pagar_deudas' && $profile['debt_amount']): ?>
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-hand-holding-usd mr-2 text-blue-600"></i>Progreso de Pago de Deudas
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Deuda Total</p>
-                        <p class="text-3xl font-bold text-red-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Deuda Total</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-red-600">
                             <?php echo formatCurrency($profile['debt_amount'], $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Ahorro para Pago</p>
-                        <p class="text-3xl font-bold text-blue-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro para Pago</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-blue-600">
                             <?php echo formatCurrency(max(0, $balance), $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">Progreso</p>
-                        <p class="text-3xl font-bold text-green-600">
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Progreso</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-green-600">
                             <?php 
                             $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $balance) / $profile['debt_amount']) * 100 : 0;
                             echo round($debt_progress) . '%'; 

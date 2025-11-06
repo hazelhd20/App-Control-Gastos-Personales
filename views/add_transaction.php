@@ -19,15 +19,15 @@ $old_data = $_SESSION['transaction_data'] ?? [];
 unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
 ?>
 
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-50 py-6 sm:py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
             <a href="<?php echo BASE_URL; ?>public/index.php?page=dashboard" 
-               class="text-blue-600 hover:text-blue-700 inline-flex items-center mb-4">
+               class="text-blue-600 hover:text-blue-700 inline-flex items-center mb-4 text-sm sm:text-base">
                 <i class="fas fa-arrow-left mr-2"></i>Volver al Dashboard
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-plus-circle mr-3 text-blue-600"></i>Registrar Transacción
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                <i class="fas fa-plus-circle mr-2 sm:mr-3 text-blue-600"></i>Registrar Transacción
             </h1>
         </div>
 
@@ -41,37 +41,37 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
             </div>
         <?php endif; ?>
 
-        <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
             <!-- Transaction Type Selection -->
-            <div class="mb-8">
-                <label class="block text-sm font-medium text-gray-700 mb-4">
+            <div class="mb-6 sm:mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-3 sm:mb-4">
                     Tipo de Transacción *
                 </label>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="expense" checked 
                                onchange="toggleTransactionType()"
                                class="hidden transaction-type-radio">
-                        <div class="p-6 border-2 border-red-500 bg-red-50 rounded-xl text-center transaction-type-option active">
-                            <i class="fas fa-arrow-up text-4xl text-red-600 mb-3"></i>
-                            <p class="font-bold text-gray-900">Gasto</p>
-                            <p class="text-sm text-gray-600 mt-1">Registrar un gasto</p>
+                        <div class="p-4 sm:p-6 border-2 border-red-500 bg-red-50 rounded-xl text-center transaction-type-option active">
+                            <i class="fas fa-arrow-up text-3xl sm:text-4xl text-red-600 mb-2 sm:mb-3"></i>
+                            <p class="font-bold text-gray-900 text-sm sm:text-base">Gasto</p>
+                            <p class="text-xs sm:text-sm text-gray-600 mt-1">Registrar un gasto</p>
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="income" 
                                onchange="toggleTransactionType()"
                                class="hidden transaction-type-radio">
-                        <div class="p-6 border-2 border-gray-300 rounded-xl text-center transaction-type-option">
-                            <i class="fas fa-arrow-down text-4xl text-green-600 mb-3"></i>
-                            <p class="font-bold text-gray-900">Ingreso</p>
-                            <p class="text-sm text-gray-600 mt-1">Registrar un ingreso adicional</p>
+                        <div class="p-4 sm:p-6 border-2 border-gray-300 rounded-xl text-center transaction-type-option">
+                            <i class="fas fa-arrow-down text-3xl sm:text-4xl text-green-600 mb-2 sm:mb-3"></i>
+                            <p class="font-bold text-gray-900 text-sm sm:text-base">Ingreso</p>
+                            <p class="text-xs sm:text-sm text-gray-600 mt-1">Registrar un ingreso adicional</p>
                         </div>
                     </label>
                 </div>
             </div>
 
-            <form id="transactionForm" action="<?php echo BASE_URL; ?>public/index.php?action=add-transaction" method="POST" class="space-y-6">
+            <form id="transactionForm" action="<?php echo BASE_URL; ?>public/index.php?action=add-transaction" method="POST" class="space-y-5 sm:space-y-6">
                 <input type="hidden" name="type" id="type_input" value="expense">
 
                 <!-- Amount -->
@@ -109,13 +109,13 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                     <label for="payment_method" class="block text-sm font-medium text-gray-700">
                         <i class="fas fa-credit-card mr-2 text-blue-600"></i>Método de Pago *
                     </label>
-                    <div class="mt-2 grid grid-cols-2 gap-4">
+                    <div class="mt-2 grid grid-cols-2 gap-3 sm:gap-4">
                         <?php foreach ($profile['payment_methods'] as $method): ?>
-                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                            <label class="flex items-center p-3 sm:p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
                                 <input type="radio" name="payment_method" value="<?php echo htmlspecialchars($method); ?>" 
                                        <?php echo ($old_data['payment_method'] ?? '') === $method ? 'checked' : ''; ?>
-                                       class="w-5 h-5 text-blue-600">
-                                <span class="ml-3 text-gray-700 font-medium">
+                                       class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600">
+                                <span class="ml-2 sm:ml-3 text-gray-700 font-medium text-sm sm:text-base">
                                     <?php echo $method === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta'; ?>
                                 </span>
                             </label>
@@ -145,13 +145,13 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                 </div>
 
                 <!-- Submit Buttons -->
-                <div class="flex justify-end space-x-4">
+                <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 sm:space-x-4 pt-4">
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=dashboard" 
-                       class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition">
+                       class="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition text-center text-sm sm:text-base w-full sm:w-auto">
                         Cancelar
                     </a>
                     <button type="submit" 
-                            class="btn-primary py-3 px-8 rounded-lg font-semibold text-lg">
+                            class="btn-primary py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg w-full sm:w-auto">
                         <i class="fas fa-save mr-2"></i>Registrar Transacción
                     </button>
                 </div>

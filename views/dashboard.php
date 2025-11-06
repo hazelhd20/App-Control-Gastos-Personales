@@ -37,13 +37,13 @@ $flash = getFlashMessage();
         </div>
     <?php endif; ?>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
                 ¡Bienvenido, <?php echo htmlspecialchars($_SESSION['user_name']); ?>! 👋
             </h1>
-            <p class="text-gray-600 mt-2">
+            <p class="text-sm sm:text-base text-gray-600 mt-2">
                 Resumen financiero de <?php echo date('F Y'); ?>
             </p>
         </div>
@@ -63,63 +63,63 @@ $flash = getFlashMessage();
         <?php endif; ?>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <!-- Total Income -->
-            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-6 text-white card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-arrow-down text-3xl"></i>
-                    <span class="text-sm opacity-90">Ingresos</span>
+            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-5 sm:p-6 text-white card-hover">
+                <div class="flex items-center justify-between mb-3">
+                    <i class="fas fa-arrow-down text-2xl sm:text-3xl"></i>
+                    <span class="text-xs sm:text-sm opacity-90">Ingresos</span>
                 </div>
-                <p class="text-3xl font-bold">
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo formatCurrency($total_income, $profile['currency']); ?>
                 </p>
-                <p class="text-sm opacity-90 mt-2">Este mes</p>
+                <p class="text-xs sm:text-sm opacity-90 mt-2">Este mes</p>
             </div>
 
             <!-- Total Expenses -->
-            <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg p-6 text-white card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-arrow-up text-3xl"></i>
-                    <span class="text-sm opacity-90">Gastos</span>
+            <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg p-5 sm:p-6 text-white card-hover">
+                <div class="flex items-center justify-between mb-3">
+                    <i class="fas fa-arrow-up text-2xl sm:text-3xl"></i>
+                    <span class="text-xs sm:text-sm opacity-90">Gastos</span>
                 </div>
-                <p class="text-3xl font-bold">
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo formatCurrency($total_expenses, $profile['currency']); ?>
                 </p>
-                <p class="text-sm opacity-90 mt-2">Este mes</p>
+                <p class="text-xs sm:text-sm opacity-90 mt-2">Este mes</p>
             </div>
 
             <!-- Balance -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-6 text-white card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-wallet text-3xl"></i>
-                    <span class="text-sm opacity-90">Saldo</span>
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg p-5 sm:p-6 text-white card-hover">
+                <div class="flex items-center justify-between mb-3">
+                    <i class="fas fa-wallet text-2xl sm:text-3xl"></i>
+                    <span class="text-xs sm:text-sm opacity-90">Saldo</span>
                 </div>
-                <p class="text-3xl font-bold">
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo formatCurrency($balance, $profile['currency']); ?>
                 </p>
-                <p class="text-sm opacity-90 mt-2">Disponible</p>
+                <p class="text-xs sm:text-sm opacity-90 mt-2">Disponible</p>
             </div>
 
             <!-- Spending Limit -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg p-6 text-white card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-chart-line text-3xl"></i>
-                    <span class="text-sm opacity-90">Límite</span>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg p-5 sm:p-6 text-white card-hover">
+                <div class="flex items-center justify-between mb-3">
+                    <i class="fas fa-chart-line text-2xl sm:text-3xl"></i>
+                    <span class="text-xs sm:text-sm opacity-90">Límite</span>
                 </div>
-                <p class="text-3xl font-bold">
+                <p class="text-2xl sm:text-3xl font-bold">
                     <?php echo round($spending_percentage); ?>%
                 </p>
-                <p class="text-sm opacity-90 mt-2">
+                <p class="text-xs sm:text-sm opacity-90 mt-2">
                     <?php echo formatCurrency($profile['spending_limit'], $profile['currency']); ?> total
                 </p>
             </div>
         </div>
 
         <!-- Charts and Recent Transactions -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <!-- Expenses by Category Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-chart-pie mr-2 text-blue-600"></i>Gastos por Categoría
                 </h3>
                 <?php if (!empty($categories)): ?>
@@ -133,8 +133,8 @@ $flash = getFlashMessage();
             </div>
 
             <!-- Payment Method Distribution -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-credit-card mr-2 text-blue-600"></i>Métodos de Pago
                 </h3>
                 <?php if ($total_expenses > 0): ?>
@@ -149,15 +149,15 @@ $flash = getFlashMessage();
         </div>
 
         <!-- Recent Transactions and Quick Actions -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Recent Transactions -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-gray-900">
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-900">
                         <i class="fas fa-history mr-2 text-blue-600"></i>Transacciones Recientes
                     </h3>
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=transactions" 
-                       class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                       class="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center">
                         Ver todas <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
@@ -165,17 +165,17 @@ $flash = getFlashMessage();
                 <?php if (!empty($recent)): ?>
                     <div class="space-y-3">
                         <?php foreach ($recent as $trans): ?>
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                                <div class="flex items-center flex-1">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center <?php echo $trans['type'] === 'expense' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'; ?>">
-                                        <i class="fas <?php echo $trans['type'] === 'expense' ? 'fa-minus' : 'fa-plus'; ?>"></i>
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 <?php echo $trans['type'] === 'expense' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'; ?>">
+                                        <i class="fas <?php echo $trans['type'] === 'expense' ? 'fa-minus' : 'fa-plus'; ?> text-sm sm:text-base"></i>
                                     </div>
-                                    <div class="ml-4">
-                                        <p class="font-medium text-gray-900"><?php echo htmlspecialchars($trans['category']); ?></p>
-                                        <p class="text-sm text-gray-600"><?php echo date('d/m/Y', strtotime($trans['transaction_date'])); ?></p>
+                                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                                        <p class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($trans['category']); ?></p>
+                                        <p class="text-xs sm:text-sm text-gray-600"><?php echo date('d/m/Y', strtotime($trans['transaction_date'])); ?></p>
                                     </div>
                                 </div>
-                                <p class="font-bold <?php echo $trans['type'] === 'expense' ? 'text-red-600' : 'text-green-600'; ?>">
+                                <p class="font-bold text-sm sm:text-base ml-2 flex-shrink-0 <?php echo $trans['type'] === 'expense' ? 'text-red-600' : 'text-green-600'; ?>">
                                     <?php echo $trans['type'] === 'expense' ? '-' : '+'; ?>
                                     <?php echo formatCurrency($trans['amount'], $profile['currency']); ?>
                                 </p>
@@ -195,25 +195,25 @@ $flash = getFlashMessage();
             </div>
 
             <!-- Quick Actions -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-6">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
                     <i class="fas fa-bolt mr-2 text-blue-600"></i>Acciones Rápidas
                 </h3>
-                <div class="space-y-3">
+                <div class="space-y-2 sm:space-y-3">
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=add-transaction" 
-                       class="block w-full btn-primary py-3 px-4 rounded-lg text-center font-semibold">
+                       class="block w-full btn-primary py-2.5 sm:py-3 px-4 rounded-lg text-center font-semibold text-sm sm:text-base">
                         <i class="fas fa-plus-circle mr-2"></i>Registrar Gasto
                     </a>
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=transactions" 
-                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 px-4 rounded-lg text-center font-semibold transition">
+                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-2.5 sm:py-3 px-4 rounded-lg text-center font-semibold transition text-sm sm:text-base">
                         <i class="fas fa-list mr-2"></i>Ver Transacciones
                     </a>
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=reports" 
-                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 px-4 rounded-lg text-center font-semibold transition">
+                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-2.5 sm:py-3 px-4 rounded-lg text-center font-semibold transition text-sm sm:text-base">
                         <i class="fas fa-chart-bar mr-2"></i>Ver Reportes
                     </a>
                     <a href="<?php echo BASE_URL; ?>public/index.php?page=profile" 
-                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 px-4 rounded-lg text-center font-semibold transition">
+                       class="block w-full bg-gray-100 text-gray-700 hover:bg-gray-200 py-2.5 sm:py-3 px-4 rounded-lg text-center font-semibold transition text-sm sm:text-base">
                         <i class="fas fa-user-cog mr-2"></i>Configuración
                     </a>
                 </div>

@@ -95,6 +95,60 @@
         .toggle-password {
             cursor: pointer;
         }
+        
+        /* Improved spacing and alignment */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        /* Better card alignment */
+        .card {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Consistent button alignment */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        /* Better text alignment on mobile */
+        @media (max-width: 640px) {
+            .text-center-mobile {
+                text-align: center;
+            }
+            
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        
+        /* Improved focus states */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Better grid alignment */
+        .grid-auto-fit {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        
+        /* Consistent spacing */
+        .section-spacing {
+            margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 640px) {
+            .section-spacing {
+                margin-bottom: 2.5rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
