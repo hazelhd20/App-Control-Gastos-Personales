@@ -156,11 +156,11 @@ $flash = getFlashMessage();
 
                 <div class="flex items-end gap-2 sm:space-x-2 sm:col-span-2 lg:col-span-1">
                     <button type="submit" 
-                            class="flex-1 bg-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
+                            class="flex-1 bg-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base h-[42px]">
                         <i class="fas fa-filter mr-2"></i>Filtrar
                     </button>
                     <a href="<?php echo BASE_URL; ?>public/index.php?action=export-transactions&year=<?php echo $year; ?>&month=<?php echo $month; ?>" 
-                       class="bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 transition text-sm sm:text-base flex items-center justify-center">
+                       class="bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 transition text-sm sm:text-base flex items-center justify-center h-[42px] w-[42px]">
                         <i class="fas fa-download"></i>
                     </a>
                 </div>
