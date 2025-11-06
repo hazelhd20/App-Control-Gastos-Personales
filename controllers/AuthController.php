@@ -256,15 +256,11 @@ class AuthController {
             $user = $this->user->verifyEmail($token);
             
             if ($user) {
-                // Auto login after verification
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_name'] = $user['full_name'];
-                
+                // Remove pending verification email from session
                 unset($_SESSION['pending_verification_email']);
                 
-                setFlashMessage('¡Correo verificado exitosamente! Bienvenido a Control de Gastos.', 'success');
-                header('Location: ' . BASE_URL . 'public/index.php?page=initial-setup');
+                setFlashMessage('¡Correo verificado exitosamente! Por favor inicia sesión para continuar.', 'success');
+                header('Location: ' . BASE_URL . 'public/index.php?page=login');
                 exit();
             } else {
                 setFlashMessage('El enlace de verificación ha expirado o no es válido.', 'error');

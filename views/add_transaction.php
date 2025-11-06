@@ -22,10 +22,6 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
 <div class="min-h-screen bg-gray-50 py-6 sm:py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
-            <a href="<?php echo BASE_URL; ?>public/index.php?page=dashboard" 
-               class="text-blue-600 hover:text-blue-700 inline-flex items-center mb-4 text-sm sm:text-base">
-                <i class="fas fa-arrow-left mr-2"></i>Volver al Dashboard
-            </a>
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
                 <i class="fas fa-plus-circle mr-2 sm:mr-3 text-blue-600"></i>Registrar Transacción
             </h1>

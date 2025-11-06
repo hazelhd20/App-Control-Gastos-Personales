@@ -138,7 +138,7 @@ $flash = getFlashMessage();
                 <?php if (!empty($expense_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($expense_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-3 sm:p-4 bg-white rounded-lg border border-gray-200 category-item" 
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition category-item" 
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
@@ -180,7 +180,7 @@ $flash = getFlashMessage();
                 <?php if (!empty($income_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($income_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-3 sm:p-4 bg-white rounded-lg border border-gray-200 category-item"
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition category-item"
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
