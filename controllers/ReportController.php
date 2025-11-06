@@ -57,7 +57,8 @@ class ReportController {
 
         $labels = [];
         $data = [];
-        $colors = [
+        $colors = [];
+        $default_colors = [
             '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
             '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
         ];
@@ -65,6 +66,7 @@ class ReportController {
         foreach ($expenses as $index => $expense) {
             $labels[] = $expense['category'];
             $data[] = floatval($expense['total']);
+            $colors[] = $expense['category_color'] ?? $default_colors[$index % count($default_colors)];
         }
 
         $chartData = [
@@ -73,7 +75,7 @@ class ReportController {
                 [
                     'label' => 'Gastos por Categoría',
                     'data' => $data,
-                    'backgroundColor' => array_slice($colors, 0, count($data))
+                    'backgroundColor' => $colors
                 ]
             ]
         ];

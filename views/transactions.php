@@ -140,8 +140,13 @@ $flash = getFlashMessage();
                     <select id="category" name="category" 
                             class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todas</option>
-                        <?php foreach ($categories as $cat): ?>
+                        <?php foreach ($categories as $cat): 
+                            $cat_icon = $cat['category_icon'] ?? 'fa-tag';
+                            $cat_color = $cat['category_color'] ?? '#6B7280';
+                        ?>
                             <option value="<?php echo htmlspecialchars($cat['category']); ?>" 
+                                    data-icon="<?php echo htmlspecialchars($cat_icon); ?>"
+                                    data-color="<?php echo htmlspecialchars($cat_color); ?>"
                                     <?php echo $filter_category === $cat['category'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($cat['category']); ?>
                             </option>
@@ -196,8 +201,13 @@ $flash = getFlashMessage();
                                         <?php echo date('d/m/Y', strtotime($trans['transaction_date'])); ?>
                                     </td>
                                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                                        <span class="px-2 sm:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        <?php 
+                                        $category_icon = $trans['category_icon'] ?? 'fa-tag';
+                                        $category_color = $trans['category_color'] ?? ($trans['type'] === 'expense' ? '#EF4444' : '#10B981');
+                                        ?>
+                                        <span class="px-2 sm:px-3 py-1 inline-flex items-center gap-1.5 sm:gap-2 text-xs leading-5 font-semibold rounded-full 
                                                      <?php echo $trans['type'] === 'expense' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'; ?>">
+                                            <i class="fas <?php echo htmlspecialchars($category_icon); ?>" style="color: <?php echo htmlspecialchars($category_color); ?>;"></i>
                                             <?php echo htmlspecialchars($trans['category']); ?>
                                         </span>
                                     </td>
@@ -207,7 +217,9 @@ $flash = getFlashMessage();
                                     <td class="hidden lg:table-cell px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                                         <?php 
                                         if ($trans['payment_method']) {
-                                            echo $trans['payment_method'] === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta';
+                                            $payment_icon = $trans['payment_method'] === 'efectivo' ? 'fa-money-bill-wave' : 'fa-credit-card';
+                                            $payment_color = $trans['payment_method'] === 'efectivo' ? 'text-green-600' : 'text-blue-600';
+                                            echo '<span class="inline-flex items-center gap-2"><i class="fas ' . $payment_icon . ' ' . $payment_color . '"></i>' . ucfirst($trans['payment_method']) . '</span>';
                                         } else {
                                             echo '-';
                                         }

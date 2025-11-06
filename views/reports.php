@@ -303,18 +303,24 @@ fetch('<?php echo BASE_URL; ?>public/index.php?action=get-monthly-comparison&yea
     });
 
 // Category Pie Chart
-<?php if (!empty($categories)): ?>
+<?php if (!empty($categories)): 
+    $category_labels = array_column($categories, 'category');
+    $category_data = array_column($categories, 'total');
+    $category_colors = [];
+    $default_colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'];
+    
+    foreach ($categories as $index => $cat) {
+        $category_colors[] = $cat['category_color'] ?? $default_colors[$index % count($default_colors)];
+    }
+?>
 const categoryCtx = document.getElementById('categoryPieChart').getContext('2d');
 new Chart(categoryCtx, {
     type: 'doughnut',
     data: {
-        labels: <?php echo json_encode(array_column($categories, 'category')); ?>,
+        labels: <?php echo json_encode($category_labels); ?>,
         datasets: [{
-            data: <?php echo json_encode(array_column($categories, 'total')); ?>,
-            backgroundColor: [
-                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
-            ]
+            data: <?php echo json_encode($category_data); ?>,
+            backgroundColor: <?php echo json_encode($category_colors); ?>
         }]
     },
     options: {

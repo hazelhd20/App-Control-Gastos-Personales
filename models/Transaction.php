@@ -54,9 +54,11 @@ class Transaction {
      * Get all transactions for a user
      */
     public function getByUserId($user_id, $limit = null, $offset = 0) {
-        $query = "SELECT * FROM " . $this->table . " 
-                  WHERE user_id = :user_id 
-                  ORDER BY transaction_date DESC, created_at DESC";
+        $query = "SELECT t.*, c.icon as category_icon, c.color as category_color 
+                  FROM " . $this->table . " t
+                  LEFT JOIN categories c ON c.name = t.category AND c.type = t.type AND (c.user_id = t.user_id OR c.user_id IS NULL)
+                  WHERE t.user_id = :user_id 
+                  ORDER BY t.transaction_date DESC, t.created_at DESC";
 
         if ($limit) {
             $query .= " LIMIT :limit OFFSET :offset";
@@ -78,11 +80,13 @@ class Transaction {
      * Get transactions by month
      */
     public function getByMonth($user_id, $year, $month) {
-        $query = "SELECT * FROM " . $this->table . " 
-                  WHERE user_id = :user_id 
-                  AND YEAR(transaction_date) = :year 
-                  AND MONTH(transaction_date) = :month
-                  ORDER BY transaction_date DESC";
+        $query = "SELECT t.*, c.icon as category_icon, c.color as category_color 
+                  FROM " . $this->table . " t
+                  LEFT JOIN categories c ON c.name = t.category AND c.type = t.type AND (c.user_id = t.user_id OR c.user_id IS NULL)
+                  WHERE t.user_id = :user_id 
+                  AND YEAR(t.transaction_date) = :year 
+                  AND MONTH(t.transaction_date) = :month
+                  ORDER BY t.transaction_date DESC";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':user_id', $user_id);
@@ -139,14 +143,17 @@ class Transaction {
      */
     public function getExpensesByCategory($user_id, $year, $month) {
         $query = "SELECT 
-                    category,
-                    SUM(amount) as total
-                  FROM " . $this->table . " 
-                  WHERE user_id = :user_id 
-                  AND type = 'expense'
-                  AND YEAR(transaction_date) = :year 
-                  AND MONTH(transaction_date) = :month
-                  GROUP BY category
+                    t.category,
+                    SUM(t.amount) as total,
+                    c.icon as category_icon,
+                    c.color as category_color
+                  FROM " . $this->table . " t
+                  LEFT JOIN categories c ON c.name = t.category AND c.type = t.type AND (c.user_id = t.user_id OR c.user_id IS NULL)
+                  WHERE t.user_id = :user_id 
+                  AND t.type = 'expense'
+                  AND YEAR(t.transaction_date) = :year 
+                  AND MONTH(t.transaction_date) = :month
+                  GROUP BY t.category, c.icon, c.color
                   ORDER BY total DESC";
 
         $stmt = $this->conn->prepare($query);

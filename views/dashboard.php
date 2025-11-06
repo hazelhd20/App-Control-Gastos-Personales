@@ -164,11 +164,14 @@ $flash = getFlashMessage();
 
                 <?php if (!empty($recent)): ?>
                     <div class="space-y-3">
-                        <?php foreach ($recent as $trans): ?>
+                        <?php foreach ($recent as $trans): 
+                            $category_icon = $trans['category_icon'] ?? 'fa-tag';
+                            $category_color = $trans['category_color'] ?? ($trans['type'] === 'expense' ? '#EF4444' : '#10B981');
+                        ?>
                             <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                                 <div class="flex items-center flex-1 min-w-0">
-                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 <?php echo $trans['type'] === 'expense' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'; ?>">
-                                        <i class="fas <?php echo $trans['type'] === 'expense' ? 'fa-minus' : 'fa-plus'; ?> text-sm sm:text-base"></i>
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: <?php echo htmlspecialchars($category_color); ?>20; border: 2px solid <?php echo htmlspecialchars($category_color); ?>40;">
+                                        <i class="fas <?php echo htmlspecialchars($category_icon); ?> text-sm sm:text-base" style="color: <?php echo htmlspecialchars($category_color); ?>;"></i>
                                     </div>
                                     <div class="ml-3 sm:ml-4 min-w-0 flex-1">
                                         <p class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($trans['category']); ?></p>
@@ -243,18 +246,24 @@ $flash = getFlashMessage();
 
 <script>
 // Category Chart
-<?php if (!empty($categories)): ?>
+<?php if (!empty($categories)): 
+    $category_labels = array_column($categories, 'category');
+    $category_data = array_column($categories, 'total');
+    $category_colors = [];
+    $default_colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'];
+    
+    foreach ($categories as $index => $cat) {
+        $category_colors[] = $cat['category_color'] ?? $default_colors[$index % count($default_colors)];
+    }
+?>
 const categoryCtx = document.getElementById('categoryChart').getContext('2d');
 new Chart(categoryCtx, {
     type: 'doughnut',
     data: {
-        labels: <?php echo json_encode(array_column($categories, 'category')); ?>,
+        labels: <?php echo json_encode($category_labels); ?>,
         datasets: [{
-            data: <?php echo json_encode(array_column($categories, 'total')); ?>,
-            backgroundColor: [
-                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
-            ]
+            data: <?php echo json_encode($category_data); ?>,
+            backgroundColor: <?php echo json_encode($category_colors); ?>
         }]
     },
     options: {

@@ -138,14 +138,16 @@ $flash = getFlashMessage();
                 <?php if (!empty($expense_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($expense_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200 category-item" 
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-white rounded-lg border border-gray-200 category-item" 
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
                                 <div class="flex items-center flex-1 min-w-0">
-                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 mr-2 sm:mr-3" style="background-color: <?php echo htmlspecialchars($cat['color']); ?>20; border: 2px solid <?php echo htmlspecialchars($cat['color']); ?>40;">
+                                        <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-sm sm:text-base" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    </div>
                                     <span class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
                                 <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
@@ -178,14 +180,16 @@ $flash = getFlashMessage();
                 <?php if (!empty($income_categories)): ?>
                     <div class="space-y-3">
                         <?php foreach ($income_categories as $cat): ?>
-                            <div class="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 category-item"
+                            <div class="flex items-center justify-between p-3 sm:p-4 bg-white rounded-lg border border-gray-200 category-item"
                                  data-id="<?php echo $cat['id']; ?>"
                                  data-type="<?php echo $cat['type']; ?>"
                                  data-name="<?php echo htmlspecialchars($cat['name']); ?>"
                                  data-icon="<?php echo htmlspecialchars($cat['icon']); ?>"
                                  data-color="<?php echo htmlspecialchars($cat['color']); ?>">
                                 <div class="flex items-center flex-1 min-w-0">
-                                    <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 mr-2 sm:mr-3" style="background-color: <?php echo htmlspecialchars($cat['color']); ?>20; border: 2px solid <?php echo htmlspecialchars($cat['color']); ?>40;">
+                                        <i class="fas <?php echo htmlspecialchars($cat['icon']); ?> text-sm sm:text-base" style="color: <?php echo htmlspecialchars($cat['color']); ?>;"></i>
+                                    </div>
                                     <span class="font-medium text-gray-900 truncate text-sm sm:text-base"><?php echo htmlspecialchars($cat['name']); ?></span>
                                 </div>
                                 <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
