@@ -80,7 +80,7 @@ class ProfileController {
                 // Add warnings as errors (user must acknowledge)
                 if (!empty($goal_validation['warnings'])) {
                     foreach ($goal_validation['warnings'] as $warning) {
-                        $errors[] = "⚠️ " . $warning;
+                        $errors[] = $warning;
                     }
                 }
 
@@ -133,7 +133,7 @@ class ProfileController {
                 // Add warnings as errors (user must acknowledge)
                 if (!empty($limit_validation['warnings'])) {
                     foreach ($limit_validation['warnings'] as $warning) {
-                        $errors[] = "⚠️ " . $warning;
+                        $errors[] = $warning;
                     }
                 }
             }

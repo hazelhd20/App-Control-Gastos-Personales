@@ -105,6 +105,7 @@ class EmailService {
         <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
                 .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -121,7 +122,7 @@ class EmailService {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1>🎯 Control de Gastos</h1>
+                    <h1><i class='fas fa-bullseye' style='font-size: 28px; vertical-align: middle; margin-right: 10px;'></i>Control de Gastos</h1>
                 </div>
                 <div class='content'>
                     <h2>¡Bienvenido, $name!</h2>
@@ -131,7 +132,7 @@ class EmailService {
                         <a href='$link' class='button'>Verificar Correo Electrónico</a>
                     </center>
                     <div class='warning'>
-                        <strong>⏰ Importante:</strong> Este enlace es válido por 24 horas.
+                        <strong><i class='fas fa-clock'></i> Importante:</strong> Este enlace es válido por 24 horas.
                     </div>
                     <p>Si no creaste esta cuenta, puedes ignorar este correo de forma segura.</p>
                 </div>
@@ -155,6 +156,7 @@ class EmailService {
         <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
                 .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -172,7 +174,7 @@ class EmailService {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1>🔐 Control de Gastos</h1>
+                    <h1><i class='fas fa-lock' style='font-size: 28px; vertical-align: middle; margin-right: 10px;'></i>Control de Gastos</h1>
                 </div>
                 <div class='content'>
                     <h2>Recuperación de Contraseña</h2>
@@ -183,10 +185,10 @@ class EmailService {
                         <a href='$link' class='button'>Restablecer Contraseña</a>
                     </center>
                     <div class='warning'>
-                        <strong>⏰ Importante:</strong> Este enlace es válido por 5 minutos por seguridad.
+                        <strong><i class='fas fa-clock'></i> Importante:</strong> Este enlace es válido por 5 minutos por seguridad.
                     </div>
                     <div class='alert'>
-                        <strong>🔒 Seguridad:</strong> Si no solicitaste restablecer tu contraseña, ignora este correo. Tu cuenta está segura.
+                        <strong><i class='fas fa-shield-alt'></i> Seguridad:</strong> Si no solicitaste restablecer tu contraseña, ignora este correo. Tu cuenta está segura.
                     </div>
                 </div>
                 <div class='footer'>

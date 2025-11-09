@@ -68,10 +68,10 @@ unset($_SESSION['password_errors']);
                         <p class="text-gray-700">
                             <?php
                             $goals = [
-                                'ahorrar' => '💰 Ahorrar',
-                                'pagar_deudas' => '💳 Pagar Deudas',
-                                'controlar_gastos' => '📊 Controlar Gastos',
-                                'otro' => '📝 Otro'
+                                'ahorrar' => '<i class="fas fa-piggy-bank mr-2"></i>Ahorrar',
+                                'pagar_deudas' => '<i class="fas fa-hand-holding-usd mr-2"></i>Pagar Deudas',
+                                'controlar_gastos' => '<i class="fas fa-chart-line mr-2"></i>Controlar Gastos',
+                                'otro' => '<i class="fas fa-edit mr-2"></i>Otro'
                             ];
                             echo $goals[$profile['financial_goal']] ?? 'No definido';
                             ?>

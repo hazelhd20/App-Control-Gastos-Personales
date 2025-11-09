@@ -76,13 +76,13 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                             <input type="checkbox" name="payment_methods[]" value="efectivo" 
                                    <?php echo in_array('efectivo', $old_data['payment_methods'] ?? []) ? 'checked' : ''; ?>
                                    class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                            <span class="ml-3 text-gray-700 font-medium">💵 Efectivo</span>
+                            <span class="ml-3 text-gray-700 font-medium"><i class="fas fa-money-bill mr-2"></i>Efectivo</span>
                         </label>
                         <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
                             <input type="checkbox" name="payment_methods[]" value="tarjeta" 
                                    <?php echo in_array('tarjeta', $old_data['payment_methods'] ?? []) ? 'checked' : ''; ?>
                                    class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                            <span class="ml-3 text-gray-700 font-medium">💳 Tarjeta</span>
+                            <span class="ml-3 text-gray-700 font-medium"><i class="fas fa-credit-card mr-2"></i>Tarjeta</span>
                         </label>
                     </div>
                 </div>
@@ -96,10 +96,10 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                             onchange="toggleGoalFields()"
                             class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Selecciona un objetivo</option>
-                        <option value="ahorrar" <?php echo ($old_data['financial_goal'] ?? '') === 'ahorrar' ? 'selected' : ''; ?>>💰 Ahorrar</option>
-                        <option value="pagar_deudas" <?php echo ($old_data['financial_goal'] ?? '') === 'pagar_deudas' ? 'selected' : ''; ?>>💳 Pagar Deudas</option>
-                        <option value="controlar_gastos" <?php echo ($old_data['financial_goal'] ?? '') === 'controlar_gastos' ? 'selected' : ''; ?>>📊 Controlar Gastos</option>
-                        <option value="otro" <?php echo ($old_data['financial_goal'] ?? '') === 'otro' ? 'selected' : ''; ?>>📝 Otro</option>
+                        <option value="ahorrar" <?php echo ($old_data['financial_goal'] ?? '') === 'ahorrar' ? 'selected' : ''; ?>>Ahorrar</option>
+                        <option value="pagar_deudas" <?php echo ($old_data['financial_goal'] ?? '') === 'pagar_deudas' ? 'selected' : ''; ?>>Pagar Deudas</option>
+                        <option value="controlar_gastos" <?php echo ($old_data['financial_goal'] ?? '') === 'controlar_gastos' ? 'selected' : ''; ?>>Controlar Gastos</option>
+                        <option value="otro" <?php echo ($old_data['financial_goal'] ?? '') === 'otro' ? 'selected' : ''; ?>>Otro</option>
                     </select>
                 </div>
 
