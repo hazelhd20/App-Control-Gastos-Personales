@@ -38,20 +38,42 @@ class AuthController {
 
             if (empty($full_name)) {
                 $errors[] = "El nombre completo es obligatorio";
+            } elseif (strlen(trim($full_name)) < 2) {
+                $errors[] = "El nombre completo debe tener al menos 2 caracteres";
+            } elseif (strlen($full_name) > 255) {
+                $errors[] = "El nombre completo es demasiado largo (máximo 255 caracteres)";
             }
 
-            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (empty($email)) {
+                $errors[] = "El correo electrónico es obligatorio";
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errors[] = "El correo electrónico no es válido";
+            } elseif (strlen($email) > 255) {
+                $errors[] = "El correo electrónico es demasiado largo (máximo 255 caracteres)";
             } elseif ($this->user->emailExists($email)) {
                 $errors[] = "El correo electrónico ya está registrado";
             }
 
             if (empty($phone)) {
                 $errors[] = "El teléfono es obligatorio";
+            } else {
+                // Basic phone validation - remove non-digit characters for validation
+                $phone_clean = preg_replace('/[^0-9+()-]/', '', $phone);
+                // Phone should have at least 7 digits (minimum for a valid phone number)
+                $phone_digits = preg_replace('/[^0-9]/', '', $phone);
+                if (strlen($phone_digits) < 7) {
+                    $errors[] = "El teléfono debe tener al menos 7 dígitos";
+                } elseif (strlen($phone_digits) > 15) {
+                    $errors[] = "El teléfono no puede tener más de 15 dígitos";
+                }
             }
 
             if (empty($occupation)) {
                 $errors[] = "La ocupación es obligatoria";
+            } elseif (strlen(trim($occupation)) < 2) {
+                $errors[] = "La ocupación debe tener al menos 2 caracteres";
+            } elseif (strlen($occupation) > 100) {
+                $errors[] = "La ocupación es demasiado larga (máximo 100 caracteres)";
             }
 
             if (empty($password)) {

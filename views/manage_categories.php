@@ -15,7 +15,8 @@ $expense_categories = array_filter($custom_categories, fn($cat) => $cat['type'] 
 $income_categories = array_filter($custom_categories, fn($cat) => $cat['type'] === 'income');
 
 $errors = $_SESSION['category_errors'] ?? [];
-unset($_SESSION['category_errors']);
+$old_data = $_SESSION['category_data'] ?? [];
+unset($_SESSION['category_errors'], $_SESSION['category_data']);
 
 $flash = getFlashMessage();
 ?>
@@ -64,8 +65,13 @@ $flash = getFlashMessage();
                             Nombre de la Categoría *
                         </label>
                         <input type="text" id="category_name" name="name" required
+                               maxlength="100"
+                               minlength="2"
+                               pattern="[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+"
+                               value="<?php echo htmlspecialchars($old_data['name'] ?? ''); ?>"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                placeholder="Ej: Gym, Netflix, etc.">
+                        <p class="mt-1 text-xs text-gray-500">Mínimo 2 caracteres, máximo 100. Solo letras, números, espacios, guiones y guiones bajos.</p>
                     </div>
 
                     <!-- Category Type -->
@@ -76,8 +82,8 @@ $flash = getFlashMessage();
                         <select id="category_type" name="type" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 onchange="updateIconGrid()">
-                            <option value="expense">Gasto</option>
-                            <option value="income">Ingreso</option>
+                            <option value="expense" <?php echo ($old_data['type'] ?? 'expense') === 'expense' ? 'selected' : ''; ?>>Gasto</option>
+                            <option value="income" <?php echo ($old_data['type'] ?? '') === 'income' ? 'selected' : ''; ?>>Ingreso</option>
                         </select>
                     </div>
                 </div>
@@ -89,7 +95,8 @@ $flash = getFlashMessage();
                     </label>
                     <div id="iconGrid" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 p-2 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-64 overflow-y-auto">
                         <?php
-                        $icons = Category::getIconsByType('expense');
+                        $initial_type = $old_data['type'] ?? 'expense';
+                        $icons = Category::getIconsByType($initial_type);
                         foreach ($icons as $icon) {
                             echo '<div class="icon-option cursor-pointer p-2 text-center rounded border border-transparent transition" 
                                     data-icon="' . htmlspecialchars($icon) . '"
@@ -101,7 +108,7 @@ $flash = getFlashMessage();
                         }
                         ?>
                     </div>
-                    <input type="hidden" id="selected_icon" name="icon" required>
+                    <input type="hidden" id="selected_icon" name="icon" value="<?php echo htmlspecialchars($old_data['icon'] ?? ''); ?>" required>
                 </div>
 
                 <!-- Color Selection -->
@@ -112,8 +119,10 @@ $flash = getFlashMessage();
                     <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50 justify-items-center items-center">
                         <?php
                         $colors = Category::getColors();
+                        $selected_color_value = $old_data['color'] ?? '#FF6B6B';
                         foreach ($colors as $color) {
-                            echo '<div class="color-option cursor-pointer rounded-full border-2 border-transparent hover:border-gray-600 transition flex items-center justify-center" 
+                            $is_selected = ($selected_color_value === $color);
+                            echo '<div class="color-option cursor-pointer rounded-full border-2 ' . ($is_selected ? 'border-gray-800 border-4 selected-color' : 'border-transparent') . ' hover:border-gray-600 transition flex items-center justify-center" 
                                     data-color="' . htmlspecialchars($color) . '"
                                     style="background-color: ' . htmlspecialchars($color) . '; width: 2.5rem; height: 2.5rem; min-width: 2.5rem; min-height: 2.5rem;"
                                     onclick="selectColor(this)">
@@ -121,7 +130,7 @@ $flash = getFlashMessage();
                         }
                         ?>
                     </div>
-                    <input type="hidden" id="selected_color" name="color" required>
+                    <input type="hidden" id="selected_color" name="color" value="<?php echo htmlspecialchars($selected_color_value); ?>" required>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-0">
@@ -236,7 +245,11 @@ $flash = getFlashMessage();
                     Nombre de la Categoría *
                 </label>
                 <input type="text" id="edit_name" name="name" required
+                       maxlength="100"
+                       minlength="2"
+                       pattern="[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+"
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <p class="mt-1 text-xs text-gray-500">Mínimo 2 caracteres, máximo 100. Solo letras, números, espacios, guiones y guiones bajos.</p>
             </div>
 
             <div>
@@ -597,15 +610,141 @@ function deleteCategory(id) {
 
 // Form validation
 document.getElementById('categoryForm').addEventListener('submit', function(e) {
-    if (!document.getElementById('selected_icon').value) {
+    const categoryName = document.getElementById('category_name').value.trim();
+    const selectedIcon = document.getElementById('selected_icon').value;
+    const selectedColor = document.getElementById('selected_color').value;
+    let isValid = true;
+    let firstError = null;
+
+    // Validate category name
+    if (!categoryName) {
         e.preventDefault();
-        alert('Por favor selecciona un icono');
+        alert('Por favor ingresa un nombre para la categoría');
+        document.getElementById('category_name').focus();
+        return false;
+    } else if (categoryName.length < 2) {
+        e.preventDefault();
+        alert('El nombre de la categoría debe tener al menos 2 caracteres');
+        document.getElementById('category_name').focus();
+        return false;
+    } else if (categoryName.length > 100) {
+        e.preventDefault();
+        alert('El nombre de la categoría no puede tener más de 100 caracteres');
+        document.getElementById('category_name').focus();
+        return false;
+    } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+$/.test(categoryName)) {
+        e.preventDefault();
+        alert('El nombre de la categoría contiene caracteres no permitidos. Solo se permiten letras, números, espacios, guiones y guiones bajos.');
+        document.getElementById('category_name').focus();
         return false;
     }
-    if (!document.getElementById('selected_color').value) {
+
+    // Validate icon
+    if (!selectedIcon) {
+        e.preventDefault();
+        alert('Por favor selecciona un icono');
+        firstError = document.getElementById('iconGrid');
+        isValid = false;
+    }
+
+    // Validate color
+    if (!selectedColor) {
         e.preventDefault();
         alert('Por favor selecciona un color');
+        if (!firstError) {
+            firstError = document.querySelector('.color-option');
+        }
+        isValid = false;
+    }
+
+    if (!isValid && firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return false;
+    }
+});
+
+// Edit form validation
+document.getElementById('editCategoryForm').addEventListener('submit', function(e) {
+    const editName = document.getElementById('edit_name').value.trim();
+    const editSelectedIcon = document.getElementById('edit_selected_icon').value;
+    const editSelectedColor = document.getElementById('edit_selected_color').value;
+    let isValid = true;
+    let firstError = null;
+
+    // Validate category name
+    if (!editName) {
+        e.preventDefault();
+        alert('Por favor ingresa un nombre para la categoría');
+        document.getElementById('edit_name').focus();
+        return false;
+    } else if (editName.length < 2) {
+        e.preventDefault();
+        alert('El nombre de la categoría debe tener al menos 2 caracteres');
+        document.getElementById('edit_name').focus();
+        return false;
+    } else if (editName.length > 100) {
+        e.preventDefault();
+        alert('El nombre de la categoría no puede tener más de 100 caracteres');
+        document.getElementById('edit_name').focus();
+        return false;
+    } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+$/.test(editName)) {
+        e.preventDefault();
+        alert('El nombre de la categoría contiene caracteres no permitidos. Solo se permiten letras, números, espacios, guiones y guiones bajos.');
+        document.getElementById('edit_name').focus();
+        return false;
+    }
+
+    // Validate icon
+    if (!editSelectedIcon) {
+        e.preventDefault();
+        alert('Por favor selecciona un icono');
+        firstError = document.getElementById('editIconGrid');
+        isValid = false;
+    }
+
+    // Validate color
+    if (!editSelectedColor) {
+        e.preventDefault();
+        alert('Por favor selecciona un color');
+        if (!firstError) {
+            firstError = document.querySelector('#editCategoryForm .color-option');
+        }
+        isValid = false;
+    }
+
+    if (!isValid && firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+    }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryType = document.getElementById('category_type').value;
+    const selectedIconValue = document.getElementById('selected_icon').value;
+    const selectedColorValue = document.getElementById('selected_color').value;
+    
+    // If we have old data with a different type, update the icon grid first
+    // But preserve the selected icon value if it exists in the new type
+    if (selectedIconValue) {
+        // Check if icon grid needs to be updated (if type is income but grid shows expense icons)
+        const currentIcons = Array.from(document.querySelectorAll('#iconGrid .icon-option')).map(el => el.dataset.icon);
+        const expectedIcons = categoryType === 'expense' ? 
+            <?php echo json_encode(Category::getIconsByType('expense')); ?> : 
+            <?php echo json_encode(Category::getIconsByType('income')); ?>;
+        
+        // If current icons don't match expected icons, update grid
+        if (currentIcons.length !== expectedIcons.length || !currentIcons.every(icon => expectedIcons.includes(icon))) {
+            updateIconGrid();
+        }
+        
+        // After grid is ready (or immediately if no update needed), restore selection
+        setTimeout(function() {
+            const iconElement = document.querySelector(`#iconGrid .icon-option[data-icon="${selectedIconValue}"]`);
+            if (iconElement) {
+                selectIcon(iconElement);
+            }
+        }, selectedIconValue && currentIcons.length !== expectedIcons.length ? 150 : 0);
     }
 });
 </script>

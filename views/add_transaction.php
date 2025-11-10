@@ -83,12 +83,14 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <span class="text-gray-500 text-lg font-semibold">$</span>
                         </div>
-                        <input id="amount" name="amount" type="number" step="0.01" min="0.01" required 
+                        <input id="amount" name="amount" type="number" step="0.01" min="0.01" max="999999999.99" required 
                                value="<?php echo htmlspecialchars($old_data['amount'] ?? ''); ?>"
                                data-min="0.01"
+                               data-max="999999999.99"
                                class="block w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold transition-all"
                                placeholder="0.00">
                     </div>
+                    <p class="mt-1 text-xs text-gray-500">Máximo 2 decimales, máximo 999,999,999.99</p>
                 </div>
 
                 <!-- Category (for expenses and income) -->
@@ -134,7 +136,9 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <input id="transaction_date" name="transaction_date" type="date" required 
                                value="<?php echo htmlspecialchars($old_data['transaction_date'] ?? date('Y-m-d')); ?>"
                                max="<?php echo date('Y-m-d'); ?>"
+                               min="<?php echo date('Y-m-d', strtotime('-10 years')); ?>"
                                class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <p class="mt-1 text-xs text-gray-500">La fecha no puede ser futura ni anterior a hace 10 años</p>
                     </div>
                 </div>
 
@@ -144,8 +148,10 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <i class="fas fa-comment mr-2 text-blue-600"></i>Descripción (opcional)
                     </label>
                     <textarea id="description" name="description" rows="3" 
+                              maxlength="500"
                               class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
                               placeholder="Agrega una nota o descripción adicional..."><?php echo htmlspecialchars($old_data['description'] ?? ''); ?></textarea>
+                    <p class="mt-1 text-xs text-gray-500">Máximo 500 caracteres</p>
                 </div>
 
                 <!-- Submit Buttons -->

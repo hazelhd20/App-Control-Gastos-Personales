@@ -39,7 +39,8 @@ $email_verified = isset($user['email_verified']) ? (bool)$user['email_verified']
 
 $flash = getFlashMessage();
 $errors = $_SESSION['profile_errors'] ?? [];
-unset($_SESSION['profile_errors']);
+$profile_data = $_SESSION['profile_data'] ?? [];
+unset($_SESSION['profile_errors'], $_SESSION['profile_data']);
 
 $password_errors = $_SESSION['password_errors'] ?? [];
 unset($_SESSION['password_errors']);
@@ -201,15 +202,19 @@ unset($_SESSION['password_errors']);
                                         Nombre Completo *
                                     </label>
                                     <input id="full_name" name="full_name" type="text" required 
-                                           value="<?php echo htmlspecialchars($user['full_name']); ?>"
+                                           maxlength="255"
+                                           minlength="2"
+                                           value="<?php echo htmlspecialchars($profile_data['full_name'] ?? $user['full_name']); ?>"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Mínimo 2 caracteres, máximo 255.</p>
                                 </div>
                                 <div>
                                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                                         Correo Electrónico *
                                     </label>
                                     <input id="email" name="email" type="email" required 
-                                           value="<?php echo htmlspecialchars($user['email']); ?>"
+                                           maxlength="255"
+                                           value="<?php echo htmlspecialchars($profile_data['email'] ?? $user['email']); ?>"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <?php if (!$email_verified): ?>
                                         <p class="mt-1 text-xs text-amber-600">
@@ -222,16 +227,21 @@ unset($_SESSION['password_errors']);
                                         Teléfono *
                                     </label>
                                     <input id="phone" name="phone" type="tel" required 
-                                           value="<?php echo htmlspecialchars($user['phone']); ?>"
+                                           pattern="[0-9+\-() ]{7,20}"
+                                           value="<?php echo htmlspecialchars($profile_data['phone'] ?? $user['phone']); ?>"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Mínimo 7 dígitos, máximo 15 dígitos.</p>
                                 </div>
                                 <div>
                                     <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">
                                         Ocupación *
                                     </label>
                                     <input id="occupation" name="occupation" type="text" required 
-                                           value="<?php echo htmlspecialchars($user['occupation']); ?>"
+                                           maxlength="100"
+                                           minlength="2"
+                                           value="<?php echo htmlspecialchars($profile_data['occupation'] ?? $user['occupation']); ?>"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Mínimo 2 caracteres, máximo 100.</p>
                                 </div>
                             </div>
                         </div>
@@ -246,11 +256,14 @@ unset($_SESSION['password_errors']);
                                     </label>
                                     <div class="relative">
                                         <input id="monthly_income" name="monthly_income" type="number" step="0.01" required 
-                                               value="<?php echo htmlspecialchars($profile['monthly_income']); ?>"
+                                               min="0.01"
+                                               max="999999999.99"
+                                               value="<?php echo htmlspecialchars($profile_data['monthly_income'] ?? $profile['monthly_income']); ?>"
                                                class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                oninput="updateCalculations()">
-                                        <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile['currency']; ?></span>
+                                        <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                     </div>
+                                    <p class="mt-1 text-xs text-gray-500">Mínimo 0.01, máximo 999,999,999.99.</p>
                                 </div>
                                 <div>
                                     <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
@@ -258,9 +271,9 @@ unset($_SESSION['password_errors']);
                                     </label>
                                     <select id="currency" name="currency" required 
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="MXN" <?php echo $profile['currency'] === 'MXN' ? 'selected' : ''; ?>>MXN</option>
-                                        <option value="USD" <?php echo $profile['currency'] === 'USD' ? 'selected' : ''; ?>>USD</option>
-                                        <option value="EUR" <?php echo $profile['currency'] === 'EUR' ? 'selected' : ''; ?>>EUR</option>
+                                        <option value="MXN" <?php echo ($profile_data['currency'] ?? $profile['currency']) === 'MXN' ? 'selected' : ''; ?>>MXN</option>
+                                        <option value="USD" <?php echo ($profile_data['currency'] ?? $profile['currency']) === 'USD' ? 'selected' : ''; ?>>USD</option>
+                                        <option value="EUR" <?php echo ($profile_data['currency'] ?? $profile['currency']) === 'EUR' ? 'selected' : ''; ?>>EUR</option>
                                     </select>
                                 </div>
                                 <div>
@@ -269,10 +282,12 @@ unset($_SESSION['password_errors']);
                                     </label>
                                     <div class="relative">
                                         <input id="spending_limit" name="spending_limit" type="number" step="0.01" required 
-                                               value="<?php echo htmlspecialchars($profile['spending_limit']); ?>"
+                                               min="0.01"
+                                               max="999999999.99"
+                                               value="<?php echo htmlspecialchars($profile_data['spending_limit'] ?? $profile['spending_limit']); ?>"
                                                class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                oninput="updateCalculations()">
-                                        <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile['currency']; ?></span>
+                                        <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                     </div>
                                     <p class="mt-1 text-xs text-gray-500" id="spending_limit_info"></p>
                                 </div>
@@ -283,16 +298,16 @@ unset($_SESSION['password_errors']);
                                     <select id="financial_goal" name="financial_goal" required 
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             onchange="toggleGoalFields()">
-                                        <option value="ahorrar" <?php echo $profile['financial_goal'] === 'ahorrar' ? 'selected' : ''; ?>>Ahorrar</option>
-                                        <option value="pagar_deudas" <?php echo $profile['financial_goal'] === 'pagar_deudas' ? 'selected' : ''; ?>>Pagar Deudas</option>
-                                        <option value="controlar_gastos" <?php echo $profile['financial_goal'] === 'controlar_gastos' ? 'selected' : ''; ?>>Controlar Gastos</option>
-                                        <option value="otro" <?php echo $profile['financial_goal'] === 'otro' ? 'selected' : ''; ?>>Otro</option>
+                                        <option value="ahorrar" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'ahorrar' ? 'selected' : ''; ?>>Ahorrar</option>
+                                        <option value="pagar_deudas" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'pagar_deudas' ? 'selected' : ''; ?>>Pagar Deudas</option>
+                                        <option value="controlar_gastos" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'controlar_gastos' ? 'selected' : ''; ?>>Controlar Gastos</option>
+                                        <option value="otro" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'otro' ? 'selected' : ''; ?>>Otro</option>
                                     </select>
                                 </div>
                             </div>
 
                             <!-- Savings Goal Fields -->
-                            <div id="savings-fields" class="mt-4 p-4 bg-pink-50 border border-pink-200 rounded-lg <?php echo $profile['financial_goal'] !== 'ahorrar' ? 'hidden' : ''; ?>">
+                            <div id="savings-fields" class="mt-4 p-4 bg-pink-50 border border-pink-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'ahorrar' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-piggy-bank text-pink-600 mr-2"></i>Meta de Ahorro
                                 </h4>
@@ -303,24 +318,29 @@ unset($_SESSION['password_errors']);
                                         </label>
                                         <div class="relative">
                                             <input id="savings_goal" name="savings_goal" type="number" step="0.01" 
-                                                   value="<?php echo htmlspecialchars($profile['savings_goal'] ?? ''); ?>"
+                                                   min="0.01"
+                                                   max="999999999.99"
+                                                   value="<?php echo htmlspecialchars($profile_data['savings_goal'] ?? $profile['savings_goal'] ?? ''); ?>"
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
-                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile['currency']; ?></span>
+                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
                                     </div>
                                     <div>
                                         <label for="savings_deadline" class="block text-sm font-medium text-gray-700 mb-1">
                                             Fecha Objetivo
                                         </label>
                                         <input id="savings_deadline" name="savings_deadline" type="date" 
-                                               value="<?php echo htmlspecialchars($profile['savings_deadline'] ?? ''); ?>"
+                                               min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
+                                               value="<?php echo htmlspecialchars($profile_data['savings_deadline'] ?? $profile['savings_deadline'] ?? ''); ?>"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                                        <p class="mt-1 text-xs text-gray-500">Debe ser una fecha futura.</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Debt Fields -->
-                            <div id="debt-fields" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg <?php echo $profile['financial_goal'] !== 'pagar_deudas' ? 'hidden' : ''; ?>">
+                            <div id="debt-fields" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'pagar_deudas' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-hand-holding-usd text-red-600 mr-2"></i>Información de Deudas
                                 </h4>
@@ -331,26 +351,32 @@ unset($_SESSION['password_errors']);
                                         </label>
                                         <div class="relative">
                                             <input id="debt_amount" name="debt_amount" type="number" step="0.01" 
-                                                   value="<?php echo htmlspecialchars($profile['debt_amount'] ?? ''); ?>"
+                                                   min="0.01"
+                                                   max="999999999.99"
+                                                   value="<?php echo htmlspecialchars($profile_data['debt_amount'] ?? $profile['debt_amount'] ?? ''); ?>"
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile['currency']; ?></span>
+                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
                                     </div>
                                     <div>
                                         <label for="debt_count" class="block text-sm font-medium text-gray-700 mb-1">
                                             Número de Deudas
                                         </label>
-                                        <input id="debt_count" name="debt_count" type="number" step="1" min="1" 
-                                               value="<?php echo htmlspecialchars($profile['debt_count'] ?? ''); ?>"
+                                        <input id="debt_count" name="debt_count" type="number" step="1" min="1" max="100"
+                                               value="<?php echo htmlspecialchars($profile_data['debt_count'] ?? $profile['debt_count'] ?? ''); ?>"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Entre 1 y 100.</p>
                                     </div>
                                     <div>
                                         <label for="debt_deadline" class="block text-sm font-medium text-gray-700 mb-1">
                                             Fecha Objetivo para Pagar
                                         </label>
                                         <input id="debt_deadline" name="debt_deadline" type="date" 
-                                               value="<?php echo htmlspecialchars($profile['debt_deadline'] ?? ''); ?>"
+                                               min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
+                                               value="<?php echo htmlspecialchars($profile_data['debt_deadline'] ?? $profile['debt_deadline'] ?? ''); ?>"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                        <p class="mt-1 text-xs text-gray-500">Debe ser una fecha futura.</p>
                                     </div>
                                     <div>
                                         <label for="monthly_payment" class="block text-sm font-medium text-gray-700 mb-1">
@@ -358,22 +384,28 @@ unset($_SESSION['password_errors']);
                                         </label>
                                         <div class="relative">
                                             <input id="monthly_payment" name="monthly_payment" type="number" step="0.01" 
-                                                   value="<?php echo htmlspecialchars($profile['monthly_payment'] ?? ''); ?>"
+                                                   min="0.01"
+                                                   max="999999999.99"
+                                                   value="<?php echo htmlspecialchars($profile_data['monthly_payment'] ?? $profile['monthly_payment'] ?? ''); ?>"
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile['currency']; ?></span>
+                                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Other Goal Field -->
-                            <div id="other-goal-fields" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg <?php echo $profile['financial_goal'] !== 'otro' ? 'hidden' : ''; ?>">
+                            <div id="other-goal-fields" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'otro' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-edit text-purple-600 mr-2"></i>Descripción del Objetivo
                                 </h4>
                                 <textarea id="goal_description" name="goal_description" rows="3" 
+                                          maxlength="500"
+                                          minlength="10"
                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                          placeholder="Describe tu objetivo financiero..."><?php echo htmlspecialchars($profile['goal_description'] ?? ''); ?></textarea>
+                                          placeholder="Describe tu objetivo financiero..."><?php echo htmlspecialchars($profile_data['goal_description'] ?? $profile['goal_description'] ?? ''); ?></textarea>
+                                <p class="mt-1 text-xs text-gray-500">Mínimo 10 caracteres, máximo 500.</p>
                             </div>
 
                             <!-- Payment Methods -->
@@ -382,19 +414,26 @@ unset($_SESSION['password_errors']);
                                     Medios de Pago *
                                 </label>
                                 <div class="flex gap-4">
-                                    <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition <?php echo in_array('efectivo', $profile['payment_methods']) ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'; ?>">
+                                    <?php
+                                    $saved_payment_methods = !empty($profile_data['payment_methods']) ? $profile_data['payment_methods'] : ($profile['payment_methods'] ?? []);
+                                    if (is_string($saved_payment_methods)) {
+                                        $saved_payment_methods = json_decode($saved_payment_methods, true) ?? [];
+                                    }
+                                    ?>
+                                    <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition <?php echo in_array('efectivo', $saved_payment_methods) ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'; ?>">
                                         <input type="checkbox" name="payment_methods[]" value="efectivo" 
-                                               <?php echo in_array('efectivo', $profile['payment_methods']) ? 'checked' : ''; ?>
+                                               <?php echo in_array('efectivo', $saved_payment_methods) ? 'checked' : ''; ?>
                                                class="w-4 h-4 text-green-600 rounded focus:ring-green-500">
                                         <span class="ml-2 font-medium text-sm">Efectivo</span>
                                     </label>
-                                    <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition <?php echo in_array('tarjeta', $profile['payment_methods']) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'; ?>">
+                                    <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition <?php echo in_array('tarjeta', $saved_payment_methods) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'; ?>">
                                         <input type="checkbox" name="payment_methods[]" value="tarjeta" 
-                                               <?php echo in_array('tarjeta', $profile['payment_methods']) ? 'checked' : ''; ?>
+                                               <?php echo in_array('tarjeta', $saved_payment_methods) ? 'checked' : ''; ?>
                                                class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
                                         <span class="ml-2 font-medium text-sm">Tarjeta</span>
                                     </label>
                                 </div>
+                                <p class="mt-1 text-xs text-gray-500">Debe seleccionar al menos un medio de pago.</p>
                             </div>
                         </div>
 
@@ -547,8 +586,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    updateCalculations();
+    // Initialize goal fields based on current selection
     toggleGoalFields();
+    
+    // Update calculations after a brief delay to ensure all fields are loaded
+    setTimeout(function() {
+        updateCalculations();
+    }, 100);
 });
 </script>
 

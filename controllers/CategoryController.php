@@ -47,17 +47,66 @@ class CategoryController {
 
             $errors = [];
 
+            // Validate name
             if (empty($name)) {
                 $errors[] = "El nombre de la categoría es obligatorio";
+            } else {
+                $name = trim($name);
+                if (strlen($name) < 2) {
+                    $errors[] = "El nombre de la categoría debe tener al menos 2 caracteres";
+                } elseif (strlen($name) > 100) {
+                    $errors[] = "El nombre de la categoría es demasiado largo (máximo 100 caracteres)";
+                } elseif (!preg_match('/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+$/u', $name)) {
+                    $errors[] = "El nombre de la categoría contiene caracteres no permitidos. Solo se permiten letras, números, espacios, guiones y guiones bajos";
+                }
             }
 
-            if ($this->category->exists($name, $type, $user_id)) {
-                $errors[] = "Ya existe una categoría con ese nombre para este tipo";
+            // Validate type
+            $valid_types = ['expense', 'income'];
+            if (!in_array($type, $valid_types)) {
+                $errors[] = "El tipo de categoría no es válido";
+                $type = 'expense'; // Default to expense if invalid
+            }
+
+            // Validate icon
+            if (empty($icon)) {
+                $errors[] = "Debe seleccionar un icono";
+            } else {
+                // Validate that icon is in the allowed list for this type
+                $allowed_icons = Category::getIconsByType($type);
+                if (!in_array($icon, $allowed_icons)) {
+                    $errors[] = "El icono seleccionado no es válido para este tipo de categoría";
+                }
+            }
+
+            // Validate color
+            if (empty($color)) {
+                $errors[] = "Debe seleccionar un color";
+            } else {
+                // Validate color format (hexadecimal)
+                if (!preg_match('/^#[a-fA-F0-9]{6}$/', $color)) {
+                    $errors[] = "El formato del color no es válido (debe ser hexadecimal, ej: #FF6B6B)";
+                } else {
+                    // Validate that color is in the allowed list
+                    $allowed_colors = Category::getColors();
+                    if (!in_array($color, $allowed_colors)) {
+                        $errors[] = "El color seleccionado no está disponible";
+                    }
+                }
+            }
+
+            // Check if category already exists (only if name is valid)
+            if (empty($errors) && !empty($name) && !empty($type)) {
+                // Normalize name (trim and check again)
+                $name = trim($name);
+                if ($this->category->exists($name, $type, $user_id)) {
+                    $errors[] = "Ya existe una categoría con el nombre '{$name}' para este tipo. Por favor elige otro nombre.";
+                }
             }
 
             if (empty($errors)) {
                 $this->category->user_id = $user_id;
-                $this->category->name = $name;
+                $this->category->name = trim($name);
                 $this->category->type = $type;
                 $this->category->icon = $icon;
                 $this->category->color = $color;
@@ -69,6 +118,12 @@ class CategoryController {
                 }
             } else {
                 $_SESSION['category_errors'] = $errors;
+                $_SESSION['category_data'] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'icon' => $icon,
+                    'color' => $color
+                ];
             }
 
             // Return JSON if AJAX request
@@ -103,14 +158,74 @@ class CategoryController {
 
             $errors = [];
 
+            // Validate ID
+            if ($id <= 0) {
+                $errors[] = "ID de categoría no válido";
+            } else {
+                // Verify that category exists and belongs to user
+                $existing_category = $this->category->getById($id, $user_id);
+                if (!$existing_category || $existing_category['user_id'] != $user_id) {
+                    $errors[] = "La categoría no existe o no tienes permiso para editarla";
+                } else {
+                    $type = $existing_category['type'];
+                }
+            }
+
+            // Validate name
             if (empty($name)) {
                 $errors[] = "El nombre de la categoría es obligatorio";
+            } else {
+                $name = trim($name);
+                if (strlen($name) < 2) {
+                    $errors[] = "El nombre de la categoría debe tener al menos 2 caracteres";
+                } elseif (strlen($name) > 100) {
+                    $errors[] = "El nombre de la categoría es demasiado largo (máximo 100 caracteres)";
+                } elseif (!preg_match('/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\-_]+$/u', $name)) {
+                    $errors[] = "El nombre de la categoría contiene caracteres no permitidos. Solo se permiten letras, números, espacios, guiones y guiones bajos";
+                }
+            }
+
+            // Validate icon
+            if (empty($icon)) {
+                $errors[] = "Debe seleccionar un icono";
+            } elseif (isset($type)) {
+                // Validate that icon is in the allowed list for this type
+                $allowed_icons = Category::getIconsByType($type);
+                if (!in_array($icon, $allowed_icons)) {
+                    $errors[] = "El icono seleccionado no es válido para este tipo de categoría";
+                }
+            }
+
+            // Validate color
+            if (empty($color)) {
+                $errors[] = "Debe seleccionar un color";
+            } else {
+                // Validate color format (hexadecimal)
+                if (!preg_match('/^#[a-fA-F0-9]{6}$/', $color)) {
+                    $errors[] = "El formato del color no es válido (debe ser hexadecimal, ej: #FF6B6B)";
+                } else {
+                    // Validate that color is in the allowed list
+                    $allowed_colors = Category::getColors();
+                    if (!in_array($color, $allowed_colors)) {
+                        $errors[] = "El color seleccionado no está disponible";
+                    }
+                }
+            }
+
+            // Check if category name already exists (only if name changed and is valid)
+            if (empty($errors) && isset($existing_category)) {
+                $name = trim($name);
+                if ($existing_category['name'] !== $name) {
+                    if ($this->category->exists($name, $type, $user_id)) {
+                        $errors[] = "Ya existe una categoría con el nombre '{$name}' para este tipo. Por favor elige otro nombre.";
+                    }
+                }
             }
 
             if (empty($errors)) {
                 $this->category->id = $id;
                 $this->category->user_id = $user_id;
-                $this->category->name = $name;
+                $this->category->name = trim($name);
                 $this->category->icon = $icon;
                 $this->category->color = $color;
 

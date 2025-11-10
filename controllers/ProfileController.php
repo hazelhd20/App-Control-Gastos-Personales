@@ -48,17 +48,32 @@ class ProfileController {
             $debt_count = intval($_POST['debt_count'] ?? 0);
             $spending_limit_type = $_POST['spending_limit_type'] ?? 'auto';
             $spending_limit = floatval($_POST['spending_limit'] ?? 0);
-
+            
             // Validations
+            $errors = [];
+            
+            // Validate currency
+            $valid_currencies = ['MXN', 'USD', 'EUR'];
+            if (!in_array($currency, $valid_currencies)) {
+                $errors[] = "La moneda seleccionada no es válida";
+            }
             if ($monthly_income <= 0) {
                 $errors[] = "El ingreso mensual debe ser mayor a 0";
+            } elseif ($monthly_income > 999999999.99) {
+                $errors[] = "El ingreso mensual es demasiado alto (máximo 999,999,999.99)";
             }
 
             if (empty($start_date)) {
                 $errors[] = "La fecha de inicio es obligatoria";
+            } else {
+                // Validate date format
+                $date_parts = explode('-', $start_date);
+                if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                    $errors[] = "La fecha de inicio no es válida";
+                }
             }
 
-            if (empty($payment_methods)) {
+            if (empty($payment_methods) || !is_array($payment_methods)) {
                 $errors[] = "Debe seleccionar al menos un medio de pago";
             }
 
@@ -93,28 +108,58 @@ class ProfileController {
                 if ($financial_goal === 'ahorrar') {
                     if ($savings_goal <= 0) {
                         $errors[] = "Debe ingresar una meta de ahorro mayor a 0";
+                    } elseif ($savings_goal > 999999999.99) {
+                        $errors[] = "La meta de ahorro es demasiado alta (máximo 999,999,999.99)";
                     }
                     if (!empty($savings_deadline)) {
-                        $deadline_date = new DateTime($savings_deadline);
-                        $today = new DateTime();
-                        if ($deadline_date <= $today) {
-                            $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                        // Validate date format
+                        $date_parts = explode('-', $savings_deadline);
+                        if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                            $errors[] = "La fecha límite de ahorro no es válida";
+                        } else {
+                            $deadline_date = new DateTime($savings_deadline);
+                            $today = new DateTime();
+                            $today->setTime(0, 0, 0);
+                            $deadline_date->setTime(0, 0, 0);
+                            if ($deadline_date <= $today) {
+                                $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                            }
                         }
                     }
                 } elseif ($financial_goal === 'pagar_deudas') {
                     if ($debt_amount <= 0) {
                         $errors[] = "Debe ingresar el monto de la deuda mayor a 0";
+                    } elseif ($debt_amount > 999999999.99) {
+                        $errors[] = "El monto de la deuda es demasiado alto (máximo 999,999,999.99)";
+                    }
+                    if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 100)) {
+                        $errors[] = "El número de deudas debe estar entre 1 y 100";
+                    }
+                    if ($monthly_payment > 0 && $monthly_payment > 999999999.99) {
+                        $errors[] = "El pago mensual es demasiado alto (máximo 999,999,999.99)";
                     }
                     if (!empty($debt_deadline)) {
-                        $deadline_date = new DateTime($debt_deadline);
-                        $today = new DateTime();
-                        if ($deadline_date <= $today) {
-                            $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                        // Validate date format
+                        $date_parts = explode('-', $debt_deadline);
+                        if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                            $errors[] = "La fecha objetivo para pagar deudas no es válida";
+                        } else {
+                            $deadline_date = new DateTime($debt_deadline);
+                            $today = new DateTime();
+                            $today->setTime(0, 0, 0);
+                            $deadline_date->setTime(0, 0, 0);
+                            if ($deadline_date <= $today) {
+                                $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                            }
                         }
                     }
                 } elseif ($financial_goal === 'otro') {
                     if (empty(trim($goal_description))) {
                         $errors[] = "Debe describir su objetivo financiero cuando selecciona 'Otro'";
+                    } elseif (strlen(trim($goal_description)) < 10) {
+                        $errors[] = "La descripción del objetivo debe tener al menos 10 caracteres";
+                    } elseif (strlen($goal_description) > 500) {
+                        $errors[] = "La descripción del objetivo es demasiado larga (máximo 500 caracteres)";
                     }
                 }
             }
@@ -132,22 +177,26 @@ class ProfileController {
                 );
             } else {
                 // Validate manual spending limit
-                $limit_validation = $this->profile->validateSpendingLimit(
-                    $spending_limit,
-                    $monthly_income,
-                    $financial_goal,
-                    $savings_goal,
-                    $debt_amount
-                );
+                if ($spending_limit <= 0) {
+                    $errors[] = "El límite de gasto manual debe ser mayor a 0";
+                } else {
+                    $limit_validation = $this->profile->validateSpendingLimit(
+                        $spending_limit,
+                        $monthly_income,
+                        $financial_goal,
+                        $savings_goal,
+                        $debt_amount
+                    );
 
-                if (!$limit_validation['valid']) {
-                    $errors[] = $limit_validation['message'];
-                }
+                    if (!$limit_validation['valid']) {
+                        $errors[] = $limit_validation['message'];
+                    }
 
-                // Add warnings as errors (user must acknowledge)
-                if (!empty($limit_validation['warnings'])) {
-                    foreach ($limit_validation['warnings'] as $warning) {
-                        $errors[] = $warning;
+                    // Add warnings as errors (user must acknowledge)
+                    if (!empty($limit_validation['warnings'])) {
+                        foreach ($limit_validation['warnings'] as $warning) {
+                            $errors[] = $warning;
+                        }
                     }
                 }
             }
@@ -200,27 +249,61 @@ class ProfileController {
             $occupation = sanitize($_POST['occupation'] ?? '');
             $email = sanitize($_POST['email'] ?? '');
 
-            if (!empty($full_name) && !empty($phone) && !empty($occupation)) {
-                $this->user->id = $user_id;
-                $this->user->full_name = $full_name;
-                $this->user->phone = $phone;
-                $this->user->occupation = $occupation;
+            // Validate full name
+            if (empty($full_name)) {
+                $errors[] = "El nombre completo es obligatorio";
+            } else {
+                $full_name = trim($full_name);
+                if (strlen($full_name) < 2) {
+                    $errors[] = "El nombre completo debe tener al menos 2 caracteres";
+                } elseif (strlen($full_name) > 255) {
+                    $errors[] = "El nombre completo es demasiado largo (máximo 255 caracteres)";
+                }
+            }
 
-                // Check if email changed
-                $current_user = $this->user->getById($user_id);
-                if ($email !== $current_user['email']) {
-                    if ($this->user->emailExists($email)) {
-                        $errors[] = "El correo electrónico ya está en uso";
-                    } else {
-                        $this->user->email = $email;
+            // Validate email
+            if (empty($email)) {
+                $errors[] = "El correo electrónico es obligatorio";
+            } else {
+                $email = trim($email);
+                if (strlen($email) > 255) {
+                    $errors[] = "El correo electrónico es demasiado largo (máximo 255 caracteres)";
+                } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $errors[] = "El formato del correo electrónico no es válido";
+                } else {
+                    // Check if email changed
+                    $current_user = $this->user->getById($user_id);
+                    if ($email !== $current_user['email']) {
+                        if ($this->user->emailExists($email)) {
+                            $errors[] = "El correo electrónico ya está en uso";
+                        }
                     }
                 }
+            }
 
-                if (empty($errors) && $this->user->update()) {
-                    $_SESSION['user_name'] = $full_name;
-                    if (!empty($this->user->email)) {
-                        $_SESSION['user_email'] = $email;
-                    }
+            // Validate phone
+            if (empty($phone)) {
+                $errors[] = "El teléfono es obligatorio";
+            } else {
+                // Basic phone validation - remove non-digit characters for validation
+                $phone_clean = preg_replace('/[^0-9+()-]/', '', $phone);
+                $phone_digits = preg_replace('/[^0-9]/', '', $phone);
+                if (strlen($phone_digits) < 7) {
+                    $errors[] = "El teléfono debe tener al menos 7 dígitos";
+                } elseif (strlen($phone_digits) > 15) {
+                    $errors[] = "El teléfono no puede tener más de 15 dígitos";
+                }
+            }
+
+            // Validate occupation
+            if (empty($occupation)) {
+                $errors[] = "La ocupación es obligatoria";
+            } else {
+                $occupation = trim($occupation);
+                if (strlen($occupation) < 2) {
+                    $errors[] = "La ocupación debe tener al menos 2 caracteres";
+                } elseif (strlen($occupation) > 100) {
+                    $errors[] = "La ocupación es demasiado larga (máximo 100 caracteres)";
                 }
             }
 
@@ -238,13 +321,170 @@ class ProfileController {
             $debt_count = intval($_POST['debt_count'] ?? 0);
             $spending_limit = floatval($_POST['spending_limit'] ?? 0);
 
-            if ($monthly_income > 0 && $spending_limit > 0 && !empty($payment_methods)) {
+            // Validate currency
+            $valid_currencies = ['MXN', 'USD', 'EUR'];
+            if (!in_array($currency, $valid_currencies)) {
+                $errors[] = "La moneda seleccionada no es válida";
+            }
+
+            // Validate monthly income
+            if ($monthly_income <= 0) {
+                $errors[] = "El ingreso mensual debe ser mayor a 0";
+            } elseif ($monthly_income > 999999999.99) {
+                $errors[] = "El ingreso mensual es demasiado alto (máximo 999,999,999.99)";
+            }
+
+            // Validate spending limit
+            if ($spending_limit <= 0) {
+                $errors[] = "El límite de gasto debe ser mayor a 0";
+            } elseif ($spending_limit > 999999999.99) {
+                $errors[] = "El límite de gasto es demasiado alto (máximo 999,999,999.99)";
+            }
+
+            // Validate payment methods
+            if (empty($payment_methods) || !is_array($payment_methods)) {
+                $errors[] = "Debe seleccionar al menos un medio de pago";
+            }
+
+            // Validate financial goal
+            if (empty($financial_goal)) {
+                $errors[] = "Debe seleccionar un objetivo financiero";
+            } else {
+                $valid_goals = ['ahorrar', 'pagar_deudas', 'controlar_gastos', 'otro'];
+                if (!in_array($financial_goal, $valid_goals)) {
+                    $errors[] = "El objetivo financiero seleccionado no es válido";
+                }
+            }
+
+            // Validate financial goal feasibility
+            if (!empty($financial_goal) && empty($errors)) {
+                $goal_validation = $this->profile->validateGoalFeasibility(
+                    $monthly_income,
+                    $financial_goal,
+                    $savings_goal,
+                    $savings_deadline,
+                    $debt_amount,
+                    $debt_deadline,
+                    $monthly_payment
+                );
+
+                if (!$goal_validation['valid']) {
+                    $errors[] = $goal_validation['message'];
+                }
+
+                // Add warnings as errors (user must acknowledge)
+                if (!empty($goal_validation['warnings'])) {
+                    foreach ($goal_validation['warnings'] as $warning) {
+                        $errors[] = $warning;
+                    }
+                }
+
+                // Specific validations per goal type
+                if ($financial_goal === 'ahorrar') {
+                    if ($savings_goal > 0) {
+                        if ($savings_goal > 999999999.99) {
+                            $errors[] = "La meta de ahorro es demasiado alta (máximo 999,999,999.99)";
+                        }
+                        if (!empty($savings_deadline)) {
+                            // Validate date format
+                            $date_parts = explode('-', $savings_deadline);
+                            if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                                $errors[] = "La fecha límite de ahorro no es válida";
+                            } else {
+                                $deadline_date = new DateTime($savings_deadline);
+                                $today = new DateTime();
+                                $today->setTime(0, 0, 0);
+                                $deadline_date->setTime(0, 0, 0);
+                                if ($deadline_date <= $today) {
+                                    $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                                }
+                            }
+                        }
+                    }
+                } elseif ($financial_goal === 'pagar_deudas') {
+                    if ($debt_amount > 0) {
+                        if ($debt_amount > 999999999.99) {
+                            $errors[] = "El monto de la deuda es demasiado alto (máximo 999,999,999.99)";
+                        }
+                        if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 100)) {
+                            $errors[] = "El número de deudas debe estar entre 1 y 100";
+                        }
+                        if ($monthly_payment > 0 && $monthly_payment > 999999999.99) {
+                            $errors[] = "El pago mensual es demasiado alto (máximo 999,999,999.99)";
+                        }
+                        if (!empty($debt_deadline)) {
+                            // Validate date format
+                            $date_parts = explode('-', $debt_deadline);
+                            if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                                $errors[] = "La fecha objetivo para pagar deudas no es válida";
+                            } else {
+                                $deadline_date = new DateTime($debt_deadline);
+                                $today = new DateTime();
+                                $today->setTime(0, 0, 0);
+                                $deadline_date->setTime(0, 0, 0);
+                                if ($deadline_date <= $today) {
+                                    $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                                }
+                            }
+                        }
+                    }
+                } elseif ($financial_goal === 'otro') {
+                    if (!empty(trim($goal_description))) {
+                        if (strlen(trim($goal_description)) < 10) {
+                            $errors[] = "La descripción del objetivo debe tener al menos 10 caracteres";
+                        } elseif (strlen($goal_description) > 500) {
+                            $errors[] = "La descripción del objetivo es demasiado larga (máximo 500 caracteres)";
+                        }
+                    }
+                }
+            }
+
+            // Validate spending limit
+            if (empty($errors) && $spending_limit > 0) {
+                $limit_validation = $this->profile->validateSpendingLimit(
+                    $spending_limit,
+                    $monthly_income,
+                    $financial_goal,
+                    $savings_goal,
+                    $debt_amount
+                );
+
+                if (!$limit_validation['valid']) {
+                    $errors[] = $limit_validation['message'];
+                }
+
+                // Add warnings as errors (user must acknowledge)
+                if (!empty($limit_validation['warnings'])) {
+                    foreach ($limit_validation['warnings'] as $warning) {
+                        $errors[] = $warning;
+                    }
+                }
+            }
+
+            // Update user info if no errors
+            if (empty($errors)) {
+                $this->user->id = $user_id;
+                $this->user->full_name = trim($full_name);
+                $this->user->phone = $phone;
+                $this->user->occupation = trim($occupation);
+                $this->user->email = trim($email);
+
+                if ($this->user->update()) {
+                    $_SESSION['user_name'] = trim($full_name);
+                    $_SESSION['user_email'] = trim($email);
+                } else {
+                    $errors[] = "Error al actualizar la información personal. Intente nuevamente.";
+                }
+            }
+
+            // Update financial profile if no errors
+            if (empty($errors) && $monthly_income > 0 && $spending_limit > 0 && !empty($payment_methods)) {
                 $this->profile->user_id = $user_id;
                 $this->profile->monthly_income = $monthly_income;
                 $this->profile->currency = $currency;
                 $this->profile->payment_methods = json_encode($payment_methods);
                 $this->profile->financial_goal = $financial_goal;
-                $this->profile->goal_description = $goal_description;
+                $this->profile->goal_description = trim($goal_description);
                 $this->profile->savings_goal = $savings_goal > 0 ? $savings_goal : null;
                 $this->profile->savings_deadline = !empty($savings_deadline) ? $savings_deadline : null;
                 $this->profile->debt_amount = $debt_amount > 0 ? $debt_amount : null;
@@ -253,13 +493,16 @@ class ProfileController {
                 $this->profile->debt_count = $debt_count > 0 ? $debt_count : null;
                 $this->profile->spending_limit = $spending_limit;
 
-                $this->profile->update();
+                if (!$this->profile->update()) {
+                    $errors[] = "Error al actualizar el perfil financiero. Intente nuevamente.";
+                }
             }
 
             if (empty($errors)) {
                 setFlashMessage('Perfil actualizado exitosamente', 'success');
             } else {
                 $_SESSION['profile_errors'] = $errors;
+                $_SESSION['profile_data'] = $_POST; // Save form data for restoration
             }
 
             header('Location: ' . BASE_URL . 'public/index.php?page=profile');

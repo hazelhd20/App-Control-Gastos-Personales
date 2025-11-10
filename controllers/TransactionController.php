@@ -37,16 +37,110 @@ class TransactionController {
             $transaction_date = sanitize($_POST['transaction_date'] ?? date('Y-m-d'));
 
             // Validations
-            if ($amount <= 0) {
-                $errors[] = "El monto debe ser mayor a 0";
+            // Validate transaction type
+            $valid_types = ['expense', 'income'];
+            if (!in_array($type, $valid_types)) {
+                $errors[] = "El tipo de transacción no es válido";
+                $type = 'expense'; // Default to expense if invalid
             }
 
+            // Validate amount
+            $amount_input = $_POST['amount'] ?? '';
+            
+            if (empty($amount_input)) {
+                $errors[] = "El monto es obligatorio";
+            } elseif (!is_numeric($amount_input)) {
+                $errors[] = "El monto debe ser un número válido";
+            } else {
+                // Validate decimal places (max 2) - check original input string
+                if (strpos($amount_input, '.') !== false) {
+                    $parts = explode('.', $amount_input);
+                    if (isset($parts[1]) && strlen(rtrim($parts[1], '0')) > 2) {
+                        $errors[] = "El monto no puede tener más de 2 decimales";
+                    }
+                }
+                
+                // Validate amount range
+                if ($amount <= 0) {
+                    $errors[] = "El monto debe ser mayor a 0";
+                } elseif ($amount > 999999999.99) {
+                    $errors[] = "El monto es demasiado alto (máximo 999,999,999.99)";
+                } else {
+                    // Round to 2 decimal places for consistency
+                    $amount = round($amount, 2);
+                }
+            }
+
+            // Validate category
             if (empty($category)) {
                 $errors[] = "La categoría es obligatoria";
+            } elseif (strlen($category) > 100) {
+                $errors[] = "El nombre de la categoría es demasiado largo (máximo 100 caracteres)";
+            } else {
+                // Validate that category exists for this user and type
+                $categories = $this->transaction->getCategories($user_id, $type);
+                $category_names = array_column($categories, 'name');
+                if (!in_array($category, $category_names)) {
+                    $errors[] = "La categoría seleccionada no es válida para este tipo de transacción";
+                }
             }
             
-            if ($type === 'expense' && empty($payment_method)) {
-                $errors[] = "El medio de pago es obligatorio para gastos";
+            // Validate payment method (only for expenses)
+            if ($type === 'expense') {
+                if (empty($payment_method)) {
+                    $errors[] = "El medio de pago es obligatorio para gastos";
+                } else {
+                    // Validate that payment method is in user's profile
+                    $profile = $this->profile->getByUserId($user_id);
+                    if ($profile && !empty($profile['payment_methods'])) {
+                        $valid_methods = $profile['payment_methods'];
+                        if (!in_array($payment_method, $valid_methods)) {
+                            $errors[] = "El medio de pago seleccionado no está disponible en tu perfil";
+                        }
+                    } else {
+                        // If no payment methods in profile, only allow common ones
+                        $valid_methods = ['efectivo', 'tarjeta'];
+                        if (!in_array($payment_method, $valid_methods)) {
+                            $errors[] = "El medio de pago no es válido";
+                        }
+                    }
+                }
+            } else {
+                // For income, payment_method should be empty or null
+                $payment_method = null;
+            }
+
+            // Validate transaction date
+            if (empty($transaction_date)) {
+                $errors[] = "La fecha de la transacción es obligatoria";
+            } else {
+                // Validate date format
+                $date_parts = explode('-', $transaction_date);
+                if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                    $errors[] = "La fecha de la transacción no es válida";
+                } else {
+                    // Validate that date is not in the future
+                    $transaction_datetime = new DateTime($transaction_date);
+                    $today = new DateTime();
+                    $today->setTime(23, 59, 59); // End of today
+                    if ($transaction_datetime > $today) {
+                        $errors[] = "La fecha de la transacción no puede ser futura";
+                    }
+                    // Optional: Validate that date is not too old (e.g., more than 10 years)
+                    $ten_years_ago = new DateTime();
+                    $ten_years_ago->modify('-10 years');
+                    if ($transaction_datetime < $ten_years_ago) {
+                        $errors[] = "La fecha de la transacción no puede ser de hace más de 10 años";
+                    }
+                }
+            }
+
+            // Validate description (optional but if provided, validate length)
+            if (!empty($description)) {
+                $description = trim($description);
+                if (strlen($description) > 500) {
+                    $errors[] = "La descripción es demasiado larga (máximo 500 caracteres)";
+                }
             }
 
             if (empty($errors)) {
@@ -55,7 +149,7 @@ class TransactionController {
                 $this->transaction->amount = $amount;
                 $this->transaction->category = $category;
                 $this->transaction->payment_method = $payment_method;
-                $this->transaction->description = $description;
+                $this->transaction->description = !empty($description) ? $description : null;
                 $this->transaction->transaction_date = $transaction_date;
 
                 if ($this->transaction->create()) {
