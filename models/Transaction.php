@@ -271,5 +271,46 @@ class Transaction {
         
         return $total_income - $total_expenses;
     }
+
+    /**
+     * Calcular el progreso real del mes para objetivos financieros
+     * Para ahorro: ingresos del mes - gastos del mes
+     * Para deudas: pagos realizados (se calcula diferente)
+     * Para control de gastos: gastos del mes
+     */
+    public function getMonthlyProgress($user_id, $year, $month, $goal_type = 'savings') {
+        $query = "SELECT 
+                    SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+                    SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses
+                  FROM " . $this->table . " 
+                  WHERE user_id = :user_id 
+                  AND YEAR(transaction_date) = :year 
+                  AND MONTH(transaction_date) = :month";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':year', $year);
+        $stmt->bindParam(':month', $month);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        $total_income = floatval($result['total_income'] ?? 0);
+        $total_expenses = floatval($result['total_expenses'] ?? 0);
+
+        switch ($goal_type) {
+            case 'savings':
+                // Para ahorro: ingresos - gastos del mes
+                return $total_income - $total_expenses;
+            case 'debt_payment':
+                // Para deudas: el progreso es el ahorro acumulado que puede usarse para pagar
+                // Por ahora, usamos el mismo cálculo que ahorro
+                return $total_income - $total_expenses;
+            case 'spending_control':
+                // Para control de gastos: retornamos los gastos (negativo porque es lo que se quiere minimizar)
+                return -$total_expenses;
+            default:
+                return 0;
+        }
+    }
 }
 

@@ -507,5 +507,142 @@ class FinancialProfile {
         }
         return 0;
     }
+
+    /**
+     * Calcular el monto mensual planificado para el objetivo de ahorro
+     * Usa el mismo cálculo que se usa en el formulario inicial
+     */
+    public function calculateMonthlySavingsGoal($user_id) {
+        $profile = $this->getByUserId($user_id);
+        
+        if (!$profile || $profile['financial_goal'] !== 'ahorrar' || !$profile['savings_goal'] || $profile['savings_goal'] <= 0) {
+            return 0;
+        }
+
+        $savings_goal = floatval($profile['savings_goal']);
+        $monthly_income = floatval($profile['monthly_income']);
+        $savings_deadline = $profile['savings_deadline'];
+
+        // Si hay fecha límite, calcular el ahorro mensual necesario
+        if (!empty($savings_deadline)) {
+            $today = new DateTime();
+            $today->setTime(0, 0, 0);
+            $deadline = new DateTime($savings_deadline);
+            $deadline->setTime(0, 0, 0);
+            
+            if ($deadline > $today) {
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $savings_deadline);
+                
+                // Calcular ahorro mensual necesario
+                $required_monthly_savings = $savings_goal / $months;
+                
+                // Limitar a máximo 50% del ingreso mensual
+                $max_savings = $monthly_income * 0.50;
+                $monthly_savings = min($required_monthly_savings, $max_savings);
+                
+                return round($monthly_savings, 2);
+            }
+        }
+        
+        // Si no hay fecha límite, usar 25% del ingreso como recomendación
+        return round($monthly_income * 0.25, 2);
+    }
+
+    /**
+     * Calcular el monto mensual planificado para el pago de deudas
+     * Usa el mismo cálculo que se usa en el formulario inicial
+     */
+    public function calculateMonthlyDebtPayment($user_id) {
+        $profile = $this->getByUserId($user_id);
+        
+        if (!$profile || $profile['financial_goal'] !== 'pagar_deudas' || !$profile['debt_amount'] || $profile['debt_amount'] <= 0) {
+            return 0;
+        }
+
+        $debt_amount = floatval($profile['debt_amount']);
+        $monthly_income = floatval($profile['monthly_income']);
+        $debt_deadline = $profile['debt_deadline'];
+        $monthly_payment = $profile['monthly_payment'];
+
+        // Si el usuario especificó un pago mensual, usarlo
+        if (!empty($monthly_payment) && $monthly_payment > 0) {
+            $recommended_payment = min($monthly_payment, $monthly_income * 0.50);
+            return round($recommended_payment, 2);
+        }
+
+        // Si hay fecha límite, calcular el pago mensual necesario
+        if (!empty($debt_deadline)) {
+            $today = new DateTime();
+            $today->setTime(0, 0, 0);
+            $deadline = new DateTime($debt_deadline);
+            $deadline->setTime(0, 0, 0);
+            
+            if ($deadline > $today) {
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $debt_deadline);
+                
+                // Calcular pago mensual necesario
+                $required_monthly_payment = $debt_amount / $months;
+                
+                // Limitar a máximo 50% del ingreso mensual
+                $max_payment = $monthly_income * 0.50;
+                $recommended_payment = min($required_monthly_payment, $max_payment);
+                
+                return round($recommended_payment, 2);
+            }
+        }
+        
+        // Por defecto: pagar en 24 meses o 30% del ingreso, lo que sea mayor
+        $min_monthly_payment = $debt_amount / 24;
+        $recommended_payment = max($monthly_income * 0.30, $min_monthly_payment);
+        $recommended_payment = min($recommended_payment, $monthly_income * 0.50);
+        
+        return round($recommended_payment, 2);
+    }
+
+    /**
+     * Obtener el tipo de objetivo financiero para el seguimiento mensual
+     */
+    public function getGoalTypeForTracking($user_id) {
+        $profile = $this->getByUserId($user_id);
+        
+        if (!$profile) {
+            return null;
+        }
+
+        switch ($profile['financial_goal']) {
+            case 'ahorrar':
+                return 'savings';
+            case 'pagar_deudas':
+                return 'debt_payment';
+            case 'controlar_gastos':
+                return 'spending_control';
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Calcular el monto mensual planificado según el objetivo financiero
+     */
+    public function calculateMonthlyGoalAmount($user_id) {
+        $profile = $this->getByUserId($user_id);
+        
+        if (!$profile) {
+            return 0;
+        }
+
+        switch ($profile['financial_goal']) {
+            case 'ahorrar':
+                return $this->calculateMonthlySavingsGoal($user_id);
+            case 'pagar_deudas':
+                return $this->calculateMonthlyDebtPayment($user_id);
+            case 'controlar_gastos':
+                // Para controlar gastos, el objetivo es no exceder el límite de gasto
+                // El monto "planificado" sería el límite de gasto
+                return floatval($profile['spending_limit']);
+            default:
+                return 0;
+        }
+    }
 }
 

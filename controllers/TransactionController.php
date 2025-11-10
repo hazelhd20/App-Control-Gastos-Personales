@@ -17,7 +17,10 @@ class TransactionController {
         $this->transaction = new Transaction($this->db);
         $this->alert = new Alert($this->db);
         $this->profile = new FinancialProfile($this->db);
+        $this->goal_progress_helper = new GoalProgressHelper($this->db);
     }
+    
+    private $goal_progress_helper;
 
     /**
      * Get transaction limits based on currency
@@ -228,6 +231,11 @@ class TransactionController {
                         $this->checkSpendingLimit($user_id);
                     }
 
+                    // Actualizar progreso mensual del objetivo financiero
+                    $transaction_year = date('Y', strtotime($transaction_date));
+                    $transaction_month = date('m', strtotime($transaction_date));
+                    $this->goal_progress_helper->updateMonthProgress($user_id, $transaction_year, $transaction_month);
+
                     setFlashMessage(
                         $type === 'expense' ? 'Gasto registrado exitosamente' : 'Ingreso registrado exitosamente',
                         'success'
@@ -305,7 +313,23 @@ class TransactionController {
             $user_id = $_SESSION['user_id'];
             $transaction_id = intval($_POST['transaction_id'] ?? 0);
 
+            // Obtener la transacción antes de eliminarla para saber qué mes actualizar
+            // Usamos una consulta directa para obtener solo la fecha de la transacción
+            $query = "SELECT transaction_date FROM transactions WHERE id = :id AND user_id = :user_id";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id', $transaction_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->execute();
+            $transaction_to_delete = $stmt->fetch();
+
             if ($this->transaction->delete($transaction_id, $user_id)) {
+                // Actualizar progreso mensual del objetivo financiero
+                if ($transaction_to_delete && isset($transaction_to_delete['transaction_date'])) {
+                    $transaction_year = date('Y', strtotime($transaction_to_delete['transaction_date']));
+                    $transaction_month = date('m', strtotime($transaction_to_delete['transaction_date']));
+                    $this->goal_progress_helper->updateMonthProgress($user_id, $transaction_year, $transaction_month);
+                }
+
                 setFlashMessage('Transacción eliminada exitosamente', 'success');
             } else {
                 setFlashMessage('Error al eliminar transacción', 'error');

@@ -9,6 +9,7 @@ $db = $database->getConnection();
 $transaction_model = new Transaction($db);
 $profile_model = new FinancialProfile($db);
 $alert_model = new Alert($db);
+$goal_progress_helper = new GoalProgressHelper($db);
 
 $user_id = $_SESSION['user_id'];
 $year = date('Y');
@@ -25,8 +26,11 @@ $total_expenses = $summary['total_expenses'] ?? 0;
 $balance = $total_income - $total_expenses; // Monthly balance for display
 $spending_percentage = $profile['spending_limit'] > 0 ? ($total_expenses / $profile['spending_limit']) * 100 : 0;
 
-// Calculate total accumulated savings for savings goal progress
+// Calculate total accumulated savings for savings goal progress (acumulado total)
 $total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
+
+// Obtener progreso mensual del objetivo financiero
+$monthly_progress = $goal_progress_helper->getCurrentMonthProgress($user_id);
 
 $flash = getFlashMessage();
 ?>
@@ -225,8 +229,182 @@ $flash = getFlashMessage();
                     </a>
                 </div>
 
-                <!-- Goal Progress -->
-                <?php if ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal']): ?>
+                <!-- Monthly Goal Progress -->
+                <?php if ($monthly_progress): ?>
+                    <?php if ($monthly_progress['goal_type'] === 'savings'): ?>
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <p class="text-sm font-medium text-blue-900 mb-3">
+                                <i class="fas fa-bullseye mr-2"></i>Progreso Mensual de Ahorro
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-blue-700">Planificado este mes:</span>
+                                    <span class="text-sm font-semibold text-blue-900">
+                                        <?php echo formatCurrency($monthly_progress['planned_amount'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-blue-700">Ahorrado este mes:</span>
+                                    <span class="text-sm font-semibold <?php echo $monthly_progress['total_progress'] >= $monthly_progress['planned_amount'] ? 'text-green-600' : 'text-blue-900'; ?>">
+                                        <?php echo formatCurrency($monthly_progress['total_progress'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                                <?php if ($monthly_progress['adjustments'] != 0): ?>
+                                    <div class="flex justify-between items-center text-xs text-orange-600">
+                                        <span>Ajustes:</span>
+                                        <span><?php echo formatCurrency($monthly_progress['adjustments'], $profile['currency']); ?></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="mt-3 w-full bg-blue-200 rounded-full h-3">
+                                <div class="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                                     style="width: <?php echo min(100, max(0, $monthly_progress['completion_percentage'])); ?>%"></div>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <p class="text-xs font-medium text-blue-600">
+                                    <?php echo round($monthly_progress['completion_percentage'], 1); ?>% del objetivo mensual
+                                </p>
+                                <?php if ($monthly_progress['remaining'] > 0): ?>
+                                    <p class="text-xs text-blue-700">
+                                        Faltan: <?php echo formatCurrency($monthly_progress['remaining'], $profile['currency']); ?>
+                                    </p>
+                                <?php elseif ($monthly_progress['surplus'] > 0): ?>
+                                    <p class="text-xs text-green-600 font-semibold">
+                                        +<?php echo formatCurrency($monthly_progress['surplus'], $profile['currency']); ?> extra
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-xs text-green-600 font-semibold">✓ Objetivo cumplido</p>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <!-- Progreso total acumulado -->
+                            <div class="mt-4 pt-4 border-t border-blue-200">
+                                <p class="text-xs text-blue-700 mb-1">Progreso total hacia la meta:</p>
+                                <p class="text-lg font-bold text-blue-600">
+                                    <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
+                                    <span class="text-xs font-normal text-blue-700">
+                                        / <?php echo formatCurrency($profile['savings_goal'], $profile['currency']); ?>
+                                    </span>
+                                </p>
+                                <?php 
+                                $total_progress_percentage = $profile['savings_goal'] > 0 ? (max(0, $total_savings_balance) / $profile['savings_goal']) * 100 : 0;
+                                ?>
+                                <div class="mt-2 w-full bg-blue-100 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" 
+                                         style="width: <?php echo min(100, max(0, $total_progress_percentage)); ?>%"></div>
+                                </div>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    <?php echo round(min(100, max(0, $total_progress_percentage)), 1); ?>% de la meta total
+                                </p>
+                            </div>
+                        </div>
+                    <?php elseif ($monthly_progress['goal_type'] === 'debt_payment'): ?>
+                        <div class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                            <p class="text-sm font-medium text-red-900 mb-3">
+                                <i class="fas fa-hand-holding-usd mr-2"></i>Progreso Mensual de Pago de Deudas
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-red-700">Planificado este mes:</span>
+                                    <span class="text-sm font-semibold text-red-900">
+                                        <?php echo formatCurrency($monthly_progress['planned_amount'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-red-700">Ahorrado este mes:</span>
+                                    <span class="text-sm font-semibold <?php echo $monthly_progress['total_progress'] >= $monthly_progress['planned_amount'] ? 'text-green-600' : 'text-red-900'; ?>">
+                                        <?php echo formatCurrency($monthly_progress['total_progress'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-3 w-full bg-red-200 rounded-full h-3">
+                                <div class="bg-green-600 h-3 rounded-full transition-all duration-300" 
+                                     style="width: <?php echo min(100, max(0, $monthly_progress['completion_percentage'])); ?>%"></div>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <p class="text-xs font-medium text-red-600">
+                                    <?php echo round($monthly_progress['completion_percentage'], 1); ?>% del objetivo mensual
+                                </p>
+                                <?php if ($monthly_progress['remaining'] > 0): ?>
+                                    <p class="text-xs text-red-700">
+                                        Faltan: <?php echo formatCurrency($monthly_progress['remaining'], $profile['currency']); ?>
+                                    </p>
+                                <?php elseif ($monthly_progress['surplus'] > 0): ?>
+                                    <p class="text-xs text-green-600 font-semibold">
+                                        +<?php echo formatCurrency($monthly_progress['surplus'], $profile['currency']); ?> extra
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-xs text-green-600 font-semibold">✓ Objetivo cumplido</p>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <!-- Progreso total acumulado -->
+                            <div class="mt-4 pt-4 border-t border-red-200">
+                                <p class="text-xs text-red-700 mb-1">Deuda total:</p>
+                                <p class="text-lg font-bold text-red-600">
+                                    <?php echo formatCurrency($profile['debt_amount'], $profile['currency']); ?>
+                                </p>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    Disponible para pagar: <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
+                                </p>
+                                <?php 
+                                $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $total_savings_balance) / $profile['debt_amount']) * 100 : 0;
+                                $debt_remaining = max(0, $profile['debt_amount'] - max(0, $total_savings_balance));
+                                ?>
+                                <div class="mt-2 w-full bg-red-100 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" 
+                                         style="width: <?php echo min(100, max(0, $debt_progress)); ?>%"></div>
+                                </div>
+                                <p class="text-xs text-red-600 mt-1">
+                                    <?php if ($debt_progress >= 100): ?>
+                                        ✓ Tienes suficiente para pagar la deuda
+                                    <?php else: ?>
+                                        Falta: <?php echo formatCurrency($debt_remaining, $profile['currency']); ?> (<?php echo round(100 - min(100, max(0, $debt_progress)), 1); ?>%)
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php elseif ($monthly_progress['goal_type'] === 'spending_control'): ?>
+                        <div class="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <p class="text-sm font-medium text-purple-900 mb-3">
+                                <i class="fas fa-chart-line mr-2"></i>Control de Gastos Mensual
+                            </p>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-purple-700">Límite de gasto:</span>
+                                    <span class="text-sm font-semibold text-purple-900">
+                                        <?php echo formatCurrency($monthly_progress['planned_amount'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-purple-700">Gastado este mes:</span>
+                                    <span class="text-sm font-semibold <?php echo $monthly_progress['total_progress'] <= $monthly_progress['planned_amount'] ? 'text-green-600' : 'text-red-600'; ?>">
+                                        <?php echo formatCurrency($monthly_progress['total_progress'], $profile['currency']); ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-3 w-full bg-purple-200 rounded-full h-3">
+                                <div class="<?php echo $monthly_progress['total_progress'] <= $monthly_progress['planned_amount'] ? 'bg-green-600' : 'bg-red-600'; ?> h-3 rounded-full transition-all duration-300" 
+                                     style="width: <?php echo min(100, max(0, ($monthly_progress['total_progress'] / $monthly_progress['planned_amount']) * 100)); ?>%"></div>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <p class="text-xs font-medium text-purple-600">
+                                    <?php echo round(($monthly_progress['total_progress'] / $monthly_progress['planned_amount']) * 100, 1); ?>% del límite
+                                </p>
+                                <?php if ($monthly_progress['total_progress'] > $monthly_progress['planned_amount']): ?>
+                                    <p class="text-xs text-red-600 font-semibold">
+                                        Excedido: <?php echo formatCurrency($monthly_progress['total_progress'] - $monthly_progress['planned_amount'], $profile['currency']); ?>
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-xs text-green-600 font-semibold">
+                                        Disponible: <?php echo formatCurrency($monthly_progress['planned_amount'] - $monthly_progress['total_progress'], $profile['currency']); ?>
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php elseif ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal']): ?>
+                    <!-- Fallback: mostrar progreso acumulado si no hay progreso mensual registrado -->
                     <div class="mt-6 p-4 bg-blue-50 rounded-lg">
                         <p class="text-sm font-medium text-blue-900 mb-2">
                             <i class="fas fa-bullseye mr-2"></i>Meta de Ahorro
@@ -249,6 +427,7 @@ $flash = getFlashMessage();
                         </p>
                     </div>
                 <?php elseif ($profile['financial_goal'] === 'pagar_deudas' && $profile['debt_amount']): ?>
+                    <!-- Fallback: mostrar progreso acumulado si no hay progreso mensual registrado -->
                     <div class="mt-6 p-4 bg-red-50 rounded-lg">
                         <p class="text-sm font-medium text-red-900 mb-2">
                             <i class="fas fa-hand-holding-usd mr-2"></i>Pago de Deudas
@@ -260,7 +439,6 @@ $flash = getFlashMessage();
                             Disponible: <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
                         </p>
                         <?php 
-                        // Calculate progress: how much of the debt can be paid with current savings
                         $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $total_savings_balance) / $profile['debt_amount']) * 100 : 0;
                         $debt_remaining = max(0, $profile['debt_amount'] - max(0, $total_savings_balance));
                         ?>

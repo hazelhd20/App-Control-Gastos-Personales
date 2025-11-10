@@ -49,7 +49,8 @@ spl_autoload_register(function ($class) {
     $paths = [
         BASE_PATH . 'models/',
         BASE_PATH . 'controllers/',
-        BASE_PATH . 'config/'
+        BASE_PATH . 'config/',
+        BASE_PATH . 'helpers/'
     ];
     
     foreach ($paths as $path) {
