@@ -695,8 +695,8 @@ function calculateRecommendedDeadline() {
     // Calculate months needed to reach goal
     const monthsNeeded = Math.ceil(savingsGoal / recommendedMonthlySavings);
     
-    // Set reasonable bounds (minimum 3 months, maximum 60 months / 5 years)
-    const minMonths = 3;
+    // Set reasonable bounds (minimum 4 months, maximum 60 months / 5 years)
+    const minMonths = 4;
     const maxMonths = 60;
     const finalMonths = Math.max(minMonths, Math.min(maxMonths, monthsNeeded));
     
@@ -773,7 +773,7 @@ function validateSavingsGoal() {
             warningMessage = 'La fecha límite debe ser una fecha futura';
             hasWarning = true;
         } else {
-            const months = Math.max(1, Math.ceil((deadline - today) / (1000 * 60 * 60 * 24 * 30)));
+            const months = Math.max(4, Math.ceil((deadline - today) / (1000 * 60 * 60 * 24 * 30)));
             const requiredMonthly = savingsGoal / months;
             const percentage = (requiredMonthly / monthlyIncome) * 100;
             
