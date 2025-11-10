@@ -164,6 +164,48 @@ class FinancialProfile {
     }
 
     /**
+     * Calculate months between two dates for financial planning
+     * Uses DateInterval to get years, months, and days for accurate calculation
+     * For financial goals, we use months calendar-based calculation
+     */
+    private function calculateMonthsBetween($start_date, $end_date) {
+        $start = new DateTime($start_date);
+        $end = new DateTime($end_date);
+        
+        // Ensure start is before end
+        if ($start >= $end) {
+            return 1; // Safety: return at least 1 month if dates are reversed or equal
+        }
+        
+        $diff = $start->diff($end);
+        
+        // Calculate total months from years and months
+        // DateInterval->y gives years, ->m gives months (remaining months after years)
+        $total_months = ($diff->y * 12) + $diff->m;
+        
+        // Handle remaining days:
+        // - If we have 0 months but have days, count as at least 1 month
+        // - If we have months and remaining days >= 15 (half month), add 1 more month
+        // - This prevents overcounting for small day differences (e.g., 1 day = 0 additional months)
+        if ($total_months == 0) {
+            // Less than 1 full month, but we have days - count as 1 month minimum
+            if ($diff->days > 0) {
+                $total_months = 1;
+            }
+        } else {
+            // We have at least 1 full month
+            // Only add an additional month if remaining days are significant (>= 15 days)
+            // This represents roughly half a month, so we round up
+            if ($diff->d >= 15) {
+                $total_months += 1;
+            }
+        }
+        
+        // Ensure at least 1 month for any valid date range
+        return max(1, $total_months);
+    }
+
+    /**
      * Calculate recommended spending limit based on goal
      */
     public function calculateSpendingLimit($monthly_income, $financial_goal, $savings_goal = 0, $debt_amount = 0, $savings_deadline = null, $debt_deadline = null, $monthly_payment = null) {
@@ -172,9 +214,9 @@ class FinancialProfile {
         if ($financial_goal === 'ahorrar' && $savings_goal > 0) {
             // If deadline is provided, calculate required monthly savings
             if (!empty($savings_deadline)) {
-                $deadline = new DateTime($savings_deadline);
                 $today = new DateTime();
-                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                $today->setTime(0, 0, 0);
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $savings_deadline);
                 
                 // Calculate required monthly savings
                 $required_monthly_savings = $savings_goal / $months;
@@ -196,9 +238,9 @@ class FinancialProfile {
                 $limit = $monthly_income - $recommended_payment;
             } elseif (!empty($debt_deadline)) {
                 // If deadline is provided, calculate required monthly payment
-                $deadline = new DateTime($debt_deadline);
                 $today = new DateTime();
-                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                $today->setTime(0, 0, 0);
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $debt_deadline);
                 
                 // Calculate required monthly payment
                 $required_monthly_payment = $debt_amount / $months;
@@ -216,9 +258,12 @@ class FinancialProfile {
                 $recommended_payment = min($recommended_payment, $monthly_income * 0.50);
                 $limit = $monthly_income - $recommended_payment;
             }
-        } else {
+        } elseif ($financial_goal === 'controlar_gastos') {
             // For general control, recommend 80% spending limit
             $limit = $monthly_income * 0.80;
+        } else {
+            // For 'otro' or any other goal, use a conservative 75% spending limit
+            $limit = $monthly_income * 0.75;
         }
 
         // Ensure limit is at least 50% of income (safety margin)
@@ -252,8 +297,10 @@ class FinancialProfile {
                     return $result;
                 }
 
-                // Calculate months until deadline
-                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                // Calculate months until deadline using accurate calculation
+                $today->setTime(0, 0, 0);
+                $deadline->setTime(0, 0, 0);
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $deadline->format('Y-m-d'));
                 
                 // Calculate required monthly savings
                 $required_monthly_savings = $savings_goal / $months;
@@ -294,8 +341,10 @@ class FinancialProfile {
                     return $result;
                 }
 
-                // Calculate months until deadline
-                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                // Calculate months until deadline using accurate calculation
+                $today->setTime(0, 0, 0);
+                $deadline->setTime(0, 0, 0);
+                $months = $this->calculateMonthsBetween($today->format('Y-m-d'), $deadline->format('Y-m-d'));
                 
                 // Calculate required monthly payment
                 $required_monthly_payment = $debt_amount / $months;

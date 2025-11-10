@@ -794,6 +794,61 @@ function calculateRecommendedDeadline() {
     }
 }
 
+/**
+ * Calculate months between two dates (matches backend logic)
+ * Uses calendar months calculation for accurate results
+ */
+function calculateMonthsBetween(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Ensure start is before end
+    if (start >= end) {
+        return 1; // Safety: return at least 1 month if dates are reversed or equal
+    }
+    
+    // Calculate difference in years, months, and days
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+    
+    // Adjust for negative days (e.g., if end day is earlier in month than start day)
+    if (days < 0) {
+        months--;
+        // Get days in the previous month
+        const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    
+    // Adjust for negative months
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    // Calculate total months
+    let totalMonths = (years * 12) + months;
+    
+    // Handle remaining days:
+    // - If we have 0 months but have days, count as at least 1 month
+    // - If we have months and remaining days >= 15 (half month), add 1 more month
+    if (totalMonths === 0) {
+        // Less than 1 full month, but we have days - count as 1 month minimum
+        if (days > 0) {
+            totalMonths = 1;
+        }
+    } else {
+        // We have at least 1 full month
+        // Only add an additional month if remaining days are significant (>= 15 days)
+        if (days >= 15) {
+            totalMonths += 1;
+        }
+    }
+    
+    // Ensure at least 1 month for any valid date range
+    return Math.max(1, totalMonths);
+}
+
 function validateSavingsGoal() {
     const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
     const savingsDeadline = document.getElementById('savings_deadline').value;
@@ -822,12 +877,14 @@ function validateSavingsGoal() {
         const deadline = new Date(savingsDeadline);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        deadline.setHours(0, 0, 0, 0);
         
         if (deadline <= today) {
             warningMessage = 'La fecha límite debe ser una fecha futura';
             hasWarning = true;
         } else {
-            const months = Math.max(4, Math.ceil((deadline - today) / (1000 * 60 * 60 * 24 * 30)));
+            // Use accurate month calculation
+            const months = calculateMonthsBetween(today, deadline);
             const requiredMonthly = savingsGoal / months;
             const percentage = (requiredMonthly / monthlyIncome) * 100;
             
@@ -918,11 +975,11 @@ function calculateRecommendedMonthlyPayment() {
         const deadline = new Date(debtDeadline);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        deadline.setHours(0, 0, 0, 0);
         
         if (deadline > today) {
-            const diffTime = deadline - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const months = Math.max(1, Math.ceil(diffDays / 30));
+            // Use accurate month calculation
+            const months = calculateMonthsBetween(today, deadline);
             
             recommendedPayment = debtAmount / months;
             // Ensure payment doesn't exceed 50% of income
@@ -1056,15 +1113,14 @@ function validateDebtGoal() {
         const deadline = new Date(debtDeadline);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        deadline.setHours(0, 0, 0, 0);
         
         if (deadline <= today) {
             warningMessage = 'La fecha objetivo debe ser una fecha futura';
             hasWarning = true;
         } else {
-            const diffTime = deadline - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const months = Math.max(1, Math.ceil(diffDays / 30));
-            
+            // Use accurate month calculation (same function as for savings)
+            const months = calculateMonthsBetween(today, deadline);
             const requiredMonthlyPayment = debtAmount / months;
             const paymentPercentage = (requiredMonthlyPayment / monthlyIncome) * 100;
             
@@ -1275,11 +1331,11 @@ function updateAutoLimit() {
                 const deadline = new Date(savingsDeadline);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
+                deadline.setHours(0, 0, 0, 0);
                 
                 if (deadline > today) {
-                    const diffTime = deadline - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    const months = Math.max(1, Math.ceil(diffDays / 30));
+                    // Use accurate month calculation
+                    const months = calculateMonthsBetween(today, deadline);
                     
                     const requiredMonthly = savingsGoal / months;
                     const maxSavings = monthlyIncome * 0.50;
@@ -1321,11 +1377,11 @@ function updateAutoLimit() {
                 const deadline = new Date(debtDeadline);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
+                deadline.setHours(0, 0, 0, 0);
                 
                 if (deadline > today) {
-                    const diffTime = deadline - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    const months = Math.max(1, Math.ceil(diffDays / 30));
+                    // Use accurate month calculation
+                    const months = calculateMonthsBetween(today, deadline);
                     
                     const requiredMonthlyPayment = debtAmount / months;
                     const maxPayment = monthlyIncome * 0.50;

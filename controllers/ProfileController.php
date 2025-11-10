@@ -192,7 +192,10 @@ class ProfileController {
                         }
                     }
                 } elseif ($financial_goal === 'pagar_deudas') {
-                    if ($debt_amount > 0) {
+                    // In initial setup, debt_amount is required when selecting this goal
+                    if ($debt_amount <= 0) {
+                        $errors[] = "Debe ingresar un monto de deuda mayor a 0 cuando selecciona 'Pagar Deudas'";
+                    } else {
                         if ($debt_amount < $limits['min_amount']) {
                             $errors[] = sprintf(
                                 "El monto de la deuda debe ser mayor a %s %s",
@@ -258,7 +261,11 @@ class ProfileController {
                             }
                         }
                     }
+                } elseif ($financial_goal === 'controlar_gastos') {
+                    // No additional fields required for 'controlar_gastos'
+                    // The spending limit will be calculated automatically
                 } elseif ($financial_goal === 'otro') {
+                    // In initial setup, goal_description is required when selecting 'otro'
                     if (empty(trim($goal_description))) {
                         $errors[] = "Debe describir su objetivo financiero cuando selecciona 'Otro'";
                     } elseif (strlen(trim($goal_description)) < 10) {
@@ -509,6 +516,21 @@ class ProfileController {
 
                 // Specific validations per goal type
                 if ($financial_goal === 'ahorrar') {
+                    // Get current profile to check if user has existing savings goal
+                    $current_profile = $this->profile->getByUserId($user_id);
+                    
+                    // If savings_goal is not provided or is 0, check if user has existing one
+                    if ($savings_goal <= 0) {
+                        if ($current_profile && !empty($current_profile['savings_goal']) && $current_profile['savings_goal'] > 0) {
+                            // Use existing savings goal from profile if not provided in form
+                            $savings_goal = $current_profile['savings_goal'];
+                        } else {
+                            // If no existing savings goal and none provided, require it
+                            $errors[] = "Debe ingresar una meta de ahorro mayor a 0 cuando selecciona 'Ahorrar'";
+                        }
+                    }
+                    
+                    // Validate savings_goal if it exists (either from form or profile)
                     if ($savings_goal > 0) {
                         if ($savings_goal < $limits['min_savings_goal']) {
                             $errors[] = sprintf(
@@ -547,6 +569,8 @@ class ProfileController {
                         }
                     }
                 } elseif ($financial_goal === 'pagar_deudas') {
+                    // In update profile, if debt_amount is provided, validate it
+                    // But it's optional when updating (user might want to clear debt info)
                     if ($debt_amount > 0) {
                         if ($debt_amount < $limits['min_amount']) {
                             $errors[] = sprintf(
@@ -569,56 +593,60 @@ class ProfileController {
                         if ($debt_to_income_ratio > 10) {
                             $errors[] = "La deuda es extremadamente alta comparada con tu ingreso anual. Por favor verifica los datos ingresados.";
                         }
-                        
-                        // More realistic debt count: typically people have 1-20 debts
-                        if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 50)) {
-                            $errors[] = "El número de deudas debe estar entre 1 y 50";
+                    }
+                    
+                    // More realistic debt count: typically people have 1-20 debts
+                    if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 50)) {
+                        $errors[] = "El número de deudas debe estar entre 1 y 50";
+                    }
+                    
+                    if ($monthly_payment > 0) {
+                        if ($monthly_payment > $limits['max_amount']) {
+                            $errors[] = sprintf(
+                                "El pago mensual es demasiado alto. El máximo permitido es %s %s",
+                                number_format($limits['max_amount'], 2, '.', ','),
+                                $currency
+                            );
                         }
-                        
-                        if ($monthly_payment > 0) {
-                            if ($monthly_payment > $limits['max_amount']) {
-                                $errors[] = sprintf(
-                                    "El pago mensual es demasiado alto. El máximo permitido es %s %s",
-                                    number_format($limits['max_amount'], 2, '.', ','),
-                                    $currency
-                                );
-                            }
-                            // Validate that monthly payment doesn't exceed available income
-                            if ($monthly_payment > $monthly_income * 0.95) {
-                                $errors[] = "El pago mensual no puede exceder el 95% de tu ingreso mensual. Debes dejar algo para gastos básicos.";
-                            }
+                        // Validate that monthly payment doesn't exceed available income
+                        if ($monthly_payment > $monthly_income * 0.95) {
+                            $errors[] = "El pago mensual no puede exceder el 95% de tu ingreso mensual. Debes dejar algo para gastos básicos.";
                         }
-                        
-                        if (!empty($debt_deadline)) {
-                            // Validate date format
-                            $date_parts = explode('-', $debt_deadline);
-                            if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
-                                $errors[] = "La fecha objetivo para pagar deudas no es válida";
+                    }
+                    
+                    if (!empty($debt_deadline)) {
+                        // Validate date format
+                        $date_parts = explode('-', $debt_deadline);
+                        if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                            $errors[] = "La fecha objetivo para pagar deudas no es válida";
+                        } else {
+                            $deadline_date = new DateTime($debt_deadline);
+                            $today = new DateTime();
+                            $today->setTime(0, 0, 0);
+                            $deadline_date->setTime(0, 0, 0);
+                            if ($deadline_date <= $today) {
+                                $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
                             } else {
-                                $deadline_date = new DateTime($debt_deadline);
-                                $today = new DateTime();
-                                $today->setTime(0, 0, 0);
-                                $deadline_date->setTime(0, 0, 0);
-                                if ($deadline_date <= $today) {
-                                    $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
-                                } else {
-                                    // Allow up to 15 years for debt payment
-                                    $max_deadline = clone $today;
-                                    $max_deadline->modify('+15 years');
-                                    if ($deadline_date > $max_deadline) {
-                                        $errors[] = "La fecha objetivo no puede ser más de 15 años en el futuro para pagar deudas";
-                                    }
+                                // Allow up to 15 years for debt payment
+                                $max_deadline = clone $today;
+                                $max_deadline->modify('+15 years');
+                                if ($deadline_date > $max_deadline) {
+                                    $errors[] = "La fecha objetivo no puede ser más de 15 años en el futuro para pagar deudas";
                                 }
                             }
                         }
                     }
+                } elseif ($financial_goal === 'controlar_gastos') {
+                    // No additional fields required for 'controlar_gastos'
+                    // The spending limit will be calculated automatically
                 } elseif ($financial_goal === 'otro') {
-                    if (!empty(trim($goal_description))) {
-                        if (strlen(trim($goal_description)) < 10) {
-                            $errors[] = "La descripción del objetivo debe tener al menos 10 caracteres";
-                        } elseif (strlen($goal_description) > 500) {
-                            $errors[] = "La descripción del objetivo es demasiado larga (máximo 500 caracteres)";
-                        }
+                    // In update profile, goal_description is required when selecting 'otro'
+                    if (empty(trim($goal_description))) {
+                        $errors[] = "Debe describir su objetivo financiero cuando selecciona 'Otro'";
+                    } elseif (strlen(trim($goal_description)) < 10) {
+                        $errors[] = "La descripción del objetivo debe tener al menos 10 caracteres";
+                    } elseif (strlen($goal_description) > 500) {
+                        $errors[] = "La descripción del objetivo es demasiado larga (máximo 500 caracteres)";
                     }
                 }
             }
