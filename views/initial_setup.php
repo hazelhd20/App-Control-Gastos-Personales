@@ -89,12 +89,89 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
 
                 <!-- Financial Goal -->
                 <div>
-                    <label for="financial_goal" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="financial_goal" class="block text-sm font-medium text-gray-700 mb-3">
                         <i class="fas fa-bullseye mr-2 text-blue-600"></i>Objetivo Financiero Principal *
                     </label>
-                    <select id="financial_goal" name="financial_goal" required 
-                            onchange="toggleGoalFields()"
-                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    
+                    <!-- Goal Selection Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="goal_cards_container">
+                        <label class="goal-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md <?php echo ($old_data['financial_goal'] ?? '') === 'ahorrar' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'; ?>">
+                            <input type="radio" name="financial_goal" value="ahorrar" 
+                                   <?php echo ($old_data['financial_goal'] ?? '') === 'ahorrar' ? 'checked' : ''; ?>
+                                   class="hidden goal-radio"
+                                   onchange="selectGoalCard('ahorrar'); toggleGoalFields();">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                                        <i class="fas fa-piggy-bank text-2xl text-pink-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Ahorrar</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Establece metas de ahorro y alcanza tus objetivos financieros</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="goal-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md <?php echo ($old_data['financial_goal'] ?? '') === 'pagar_deudas' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'; ?>">
+                            <input type="radio" name="financial_goal" value="pagar_deudas" 
+                                   <?php echo ($old_data['financial_goal'] ?? '') === 'pagar_deudas' ? 'checked' : ''; ?>
+                                   class="hidden goal-radio"
+                                   onchange="selectGoalCard('pagar_deudas'); toggleGoalFields();">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                        <i class="fas fa-hand-holding-usd text-2xl text-red-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Pagar Deudas</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Gestiona y reduce tus deudas de manera efectiva</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="goal-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md <?php echo ($old_data['financial_goal'] ?? '') === 'controlar_gastos' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'; ?>">
+                            <input type="radio" name="financial_goal" value="controlar_gastos" 
+                                   <?php echo ($old_data['financial_goal'] ?? '') === 'controlar_gastos' ? 'checked' : ''; ?>
+                                   class="hidden goal-radio"
+                                   onchange="selectGoalCard('controlar_gastos'); toggleGoalFields();">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-2xl text-green-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Controlar Gastos</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Mantén un control estricto sobre tus gastos mensuales</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="goal-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md <?php echo ($old_data['financial_goal'] ?? '') === 'otro' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'; ?>">
+                            <input type="radio" name="financial_goal" value="otro" 
+                                   <?php echo ($old_data['financial_goal'] ?? '') === 'otro' ? 'checked' : ''; ?>
+                                   class="hidden goal-radio"
+                                   onchange="selectGoalCard('otro'); toggleGoalFields();">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <i class="fas fa-edit text-2xl text-purple-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Otro</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Define tu propio objetivo financiero personalizado</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Hidden select for form validation -->
+                    <select id="financial_goal_select" name="financial_goal" required 
+                            class="hidden"
+                            onchange="toggleGoalFields()">
                         <option value="">Selecciona un objetivo</option>
                         <option value="ahorrar" <?php echo ($old_data['financial_goal'] ?? '') === 'ahorrar' ? 'selected' : ''; ?>>Ahorrar</option>
                         <option value="pagar_deudas" <?php echo ($old_data['financial_goal'] ?? '') === 'pagar_deudas' ? 'selected' : ''; ?>>Pagar Deudas</option>
@@ -104,7 +181,13 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                 </div>
 
                 <!-- Savings Goal Fields -->
-                <div id="savings_fields" class="hidden">
+                <div id="savings_fields" class="hidden goal-section transition-all duration-500 ease-in-out">
+                    <div class="mb-4 p-4 bg-pink-50 border-l-4 border-pink-500 rounded">
+                        <div class="flex items-center">
+                            <i class="fas fa-piggy-bank text-pink-600 mr-2"></i>
+                            <p class="text-sm font-medium text-pink-900">Configuración de Meta de Ahorro</p>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div>
                             <label for="savings_goal" class="block text-sm font-medium text-gray-700">
@@ -150,7 +233,13 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                 </div>
 
                 <!-- Debt Fields -->
-                <div id="debt_fields" class="hidden">
+                <div id="debt_fields" class="hidden goal-section transition-all duration-500 ease-in-out">
+                    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                        <div class="flex items-center">
+                            <i class="fas fa-hand-holding-usd text-red-600 mr-2"></i>
+                            <p class="text-sm font-medium text-red-900">Configuración de Pago de Deudas</p>
+                        </div>
+                    </div>
                     <div class="mb-4">
                         <label for="debt_amount" class="block text-sm font-medium text-gray-700">
                             <i class="fas fa-hand-holding-usd mr-2 text-red-600"></i>Monto Total de Deuda *
@@ -183,7 +272,13 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                 </div>
 
                 <!-- Other Goal Description -->
-                <div id="other_goal_fields" class="hidden">
+                <div id="other_goal_fields" class="hidden goal-section transition-all duration-500 ease-in-out">
+                    <div class="mb-4 p-4 bg-purple-50 border-l-4 border-purple-500 rounded">
+                        <div class="flex items-center">
+                            <i class="fas fa-edit text-purple-600 mr-2"></i>
+                            <p class="text-sm font-medium text-purple-900">Describe tu Objetivo Personalizado</p>
+                        </div>
+                    </div>
                     <label for="goal_description" class="block text-sm font-medium text-gray-700">
                         <i class="fas fa-comment mr-2 text-blue-600"></i>Describe tu Objetivo *
                     </label>
@@ -233,7 +328,7 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                             <p id="limit_warning_text" class="text-xs text-yellow-800"></p>
                         </div>
                     </div>
-                    <div id="auto_limit_info" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div id="auto_limit_info" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg transition-all duration-300">
                         <div class="flex items-start">
                             <i class="fas fa-calculator text-green-600 mt-1 mr-2"></i>
                             <div class="flex-1">
@@ -272,27 +367,103 @@ function getCurrency() {
     return document.getElementById('currency').value || 'MXN';
 }
 
+function selectGoalCard(goalValue) {
+    // Update hidden select for form validation
+    const select = document.getElementById('financial_goal_select');
+    if (select) {
+        select.value = goalValue;
+    }
+    
+    // Update card visuals
+    document.querySelectorAll('.goal-card').forEach(card => {
+        card.classList.remove('border-blue-500', 'bg-blue-50');
+        card.classList.add('border-gray-300');
+    });
+    
+    // Highlight selected card
+    const selectedRadio = document.querySelector(`.goal-radio[value="${goalValue}"]`);
+    if (selectedRadio) {
+        const selectedCard = selectedRadio.closest('.goal-card');
+        if (selectedCard) {
+            selectedCard.classList.remove('border-gray-300');
+            selectedCard.classList.add('border-blue-500', 'bg-blue-50');
+        }
+    }
+}
+
+function getSelectedGoal() {
+    const selectedRadio = document.querySelector('.goal-radio:checked');
+    return selectedRadio ? selectedRadio.value : document.getElementById('financial_goal_select').value;
+}
+
 function toggleGoalFields() {
-    const goal = document.getElementById('financial_goal').value;
-    document.getElementById('savings_fields').classList.add('hidden');
-    document.getElementById('debt_fields').classList.add('hidden');
-    document.getElementById('other_goal_fields').classList.add('hidden');
+    const goal = getSelectedGoal();
+    const savingsFields = document.getElementById('savings_fields');
+    const debtFields = document.getElementById('debt_fields');
+    const otherFields = document.getElementById('other_goal_fields');
+    
+    // Hide all fields with animation
+    [savingsFields, debtFields, otherFields].forEach(field => {
+        if (!field.classList.contains('hidden')) {
+            field.style.opacity = '0';
+            field.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                field.classList.add('hidden');
+            }, 300);
+        }
+    });
     
     // Hide all info/warning boxes
     hideAllInfoBoxes();
     
-    if (goal === 'ahorrar') {
-        document.getElementById('savings_fields').classList.remove('hidden');
-        validateSavingsGoal();
-    } else if (goal === 'pagar_deudas') {
-        document.getElementById('debt_fields').classList.remove('hidden');
-        validateDebtGoal();
-    } else if (goal === 'otro') {
-        document.getElementById('other_goal_fields').classList.remove('hidden');
-        validateOtherGoal();
-    }
-    
-    updateAutoLimit();
+    // Show relevant fields with animation
+    setTimeout(() => {
+        if (goal === 'ahorrar') {
+            savingsFields.classList.remove('hidden');
+            setTimeout(() => {
+                savingsFields.style.opacity = '1';
+                savingsFields.style.transform = 'translateY(0)';
+                // Make savings goal required
+                document.getElementById('savings_goal').required = true;
+                document.getElementById('savings_deadline').required = false;
+                document.getElementById('debt_amount').required = false;
+                document.getElementById('goal_description').required = false;
+                validateSavingsGoal();
+            }, 50);
+        } else if (goal === 'pagar_deudas') {
+            debtFields.classList.remove('hidden');
+            setTimeout(() => {
+                debtFields.style.opacity = '1';
+                debtFields.style.transform = 'translateY(0)';
+                // Make debt amount required
+                document.getElementById('debt_amount').required = true;
+                document.getElementById('savings_goal').required = false;
+                document.getElementById('savings_deadline').required = false;
+                document.getElementById('goal_description').required = false;
+                validateDebtGoal();
+            }, 50);
+        } else if (goal === 'otro') {
+            otherFields.classList.remove('hidden');
+            setTimeout(() => {
+                otherFields.style.opacity = '1';
+                otherFields.style.transform = 'translateY(0)';
+                // Make description required
+                document.getElementById('goal_description').required = true;
+                document.getElementById('savings_goal').required = false;
+                document.getElementById('savings_deadline').required = false;
+                document.getElementById('debt_amount').required = false;
+                validateOtherGoal();
+            }, 50);
+        } else {
+            // No goal selected - clear requirements
+            document.getElementById('savings_goal').required = false;
+            document.getElementById('savings_deadline').required = false;
+            document.getElementById('debt_amount').required = false;
+            document.getElementById('goal_description').required = false;
+        }
+        
+        updateAutoLimit();
+    }, 350);
 }
 
 function hideAllInfoBoxes() {
@@ -445,8 +616,21 @@ function validateDebtGoal() {
 
 function validateOtherGoal() {
     const description = document.getElementById('goal_description').value.trim();
-    // Basic validation - just check if empty
-    // More complex validation can be added if needed
+    const goalDescriptionField = document.getElementById('goal_description');
+    
+    // Remove previous validation styling
+    goalDescriptionField.classList.remove('border-red-500', 'border-green-500');
+    
+    if (description.length === 0) {
+        goalDescriptionField.classList.add('border-red-500');
+        return false;
+    } else if (description.length < 10) {
+        goalDescriptionField.classList.add('border-yellow-500');
+        return false;
+    } else {
+        goalDescriptionField.classList.add('border-green-500');
+        return true;
+    }
 }
 
 function validateSpendingLimit() {
@@ -518,59 +702,136 @@ function validateSpendingLimit() {
 function updateAutoLimit() {
     const limitType = document.querySelector('input[name="spending_limit_type"]:checked');
     if (!limitType || limitType.value !== 'auto') {
-        document.getElementById('auto_limit_info').classList.add('hidden');
+        const autoLimitInfo = document.getElementById('auto_limit_info');
+        if (!autoLimitInfo.classList.contains('hidden')) {
+            autoLimitInfo.style.opacity = '0';
+            setTimeout(() => {
+                autoLimitInfo.classList.add('hidden');
+            }, 300);
+        }
         return;
     }
     
     const monthlyIncome = getMonthlyIncome();
     const currency = getCurrency();
-    const financialGoal = document.getElementById('financial_goal').value;
+    const financialGoal = getSelectedGoal();
     const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
     const savingsDeadline = document.getElementById('savings_deadline').value;
     const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
     
     if (monthlyIncome <= 0) {
-        document.getElementById('auto_limit_info').classList.add('hidden');
+        const autoLimitInfo = document.getElementById('auto_limit_info');
+        if (!autoLimitInfo.classList.contains('hidden')) {
+            autoLimitInfo.style.opacity = '0';
+            setTimeout(() => {
+                autoLimitInfo.classList.add('hidden');
+            }, 300);
+        }
         return;
     }
     
-    // Calculate limit (simplified version of server-side calculation)
+    // Calculate limit (improved calculation matching server-side logic)
     let limit = monthlyIncome;
     let details = '';
+    let savingsAmount = 0;
+    let paymentAmount = 0;
     
-    if (financialGoal === 'ahorrar' && savingsGoal > 0) {
-        if (savingsDeadline) {
-            const deadline = new Date(savingsDeadline);
-            const today = new Date();
-            const months = Math.max(1, Math.ceil((deadline - today) / (1000 * 60 * 60 * 24 * 30)));
-            const requiredMonthly = savingsGoal / months;
-            const maxSavings = monthlyIncome * 0.50;
-            const monthlySavings = Math.min(requiredMonthly, maxSavings);
-            limit = monthlyIncome - monthlySavings;
-            details = `Basado en ahorro mensual de ${formatCurrency(monthlySavings, currency)} para alcanzar ${formatCurrency(savingsGoal, currency)} en ${months} meses`;
+    if (financialGoal === 'ahorrar') {
+        if (savingsGoal > 0) {
+            if (savingsDeadline) {
+                const deadline = new Date(savingsDeadline);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (deadline > today) {
+                    const diffTime = deadline - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const months = Math.max(1, Math.ceil(diffDays / 30));
+                    
+                    const requiredMonthly = savingsGoal / months;
+                    const maxSavings = monthlyIncome * 0.50;
+                    savingsAmount = Math.min(requiredMonthly, maxSavings);
+                    limit = monthlyIncome - savingsAmount;
+                    details = `Basado en ahorro mensual de ${formatCurrency(savingsAmount, currency)} para alcanzar ${formatCurrency(savingsGoal, currency)} en ${months} meses`;
+                } else {
+                    const recommendedSavings = monthlyIncome * 0.25;
+                    savingsAmount = recommendedSavings;
+                    limit = monthlyIncome - recommendedSavings;
+                    details = `Basado en ahorro recomendado del 25% del ingreso (${formatCurrency(recommendedSavings, currency)})`;
+                }
+            } else {
+                const recommendedSavings = monthlyIncome * 0.25;
+                savingsAmount = recommendedSavings;
+                limit = monthlyIncome - recommendedSavings;
+                details = `Basado en ahorro recomendado del 25% del ingreso (${formatCurrency(recommendedSavings, currency)})`;
+            }
         } else {
+            // No savings goal set yet
             const recommendedSavings = monthlyIncome * 0.25;
+            savingsAmount = recommendedSavings;
             limit = monthlyIncome - recommendedSavings;
-            details = `Basado en ahorro recomendado del 25% del ingreso (${formatCurrency(recommendedSavings, currency)})`;
+            details = `Ingresa una meta de ahorro para un cálculo más preciso. Por ahora: ${formatCurrency(recommendedSavings, currency)} para ahorro (25%)`;
         }
-    } else if (financialGoal === 'pagar_deudas' && debtAmount > 0) {
-        const minMonthlyPayment = debtAmount / 24;
-        const recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
-        const finalPayment = Math.min(recommendedPayment, monthlyIncome * 0.50);
-        limit = monthlyIncome - finalPayment;
-        details = `Basado en pago mensual de ${formatCurrency(finalPayment, currency)} para pagar la deuda`;
+    } else if (financialGoal === 'pagar_deudas') {
+        if (debtAmount > 0) {
+            const minMonthlyPayment = debtAmount / 24;
+            const recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
+            paymentAmount = Math.min(recommendedPayment, monthlyIncome * 0.50);
+            limit = monthlyIncome - paymentAmount;
+            
+            const paymentMonths = Math.ceil(debtAmount / paymentAmount);
+            details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en aproximadamente ${paymentMonths} meses`;
+        } else {
+            // No debt amount set yet
+            const recommendedPayment = monthlyIncome * 0.30;
+            paymentAmount = recommendedPayment;
+            limit = monthlyIncome - recommendedPayment;
+            details = `Ingresa el monto de deuda para un cálculo más preciso. Por ahora: ${formatCurrency(recommendedPayment, currency)} para pagos (30%)`;
+        }
+    } else if (financialGoal === 'controlar_gastos') {
+        limit = monthlyIncome * 0.80;
+        const savings = monthlyIncome * 0.20;
+        details = `Basado en límite recomendado del 80% del ingreso. ${formatCurrency(savings, currency)} disponible para ahorro (20%)`;
+    } else if (financialGoal === 'otro') {
+        limit = monthlyIncome * 0.75;
+        const available = monthlyIncome * 0.25;
+        details = `Límite conservador del 75% del ingreso. ${formatCurrency(available, currency)} disponible para tu objetivo (25%)`;
     } else {
         limit = monthlyIncome * 0.80;
         details = 'Basado en límite recomendado del 80% del ingreso';
     }
     
-    // Ensure minimum
+    // Ensure minimum (at least 50% of income)
     const minLimit = monthlyIncome * 0.50;
     limit = Math.max(limit, minLimit);
     
+    // Update display with animation
+    const autoLimitInfo = document.getElementById('auto_limit_info');
+    const wasHidden = autoLimitInfo.classList.contains('hidden');
+    
     document.getElementById('auto_limit_value').textContent = formatCurrency(limit, currency);
     document.getElementById('auto_limit_details').textContent = details;
-    document.getElementById('auto_limit_info').classList.remove('hidden');
+    
+    if (wasHidden) {
+        autoLimitInfo.classList.remove('hidden');
+        autoLimitInfo.style.opacity = '0';
+        setTimeout(() => {
+            autoLimitInfo.style.opacity = '1';
+        }, 50);
+    }
+    
+    // Add visual indicator based on limit percentage
+    const limitPercentage = (limit / monthlyIncome) * 100;
+    const limitBox = document.getElementById('auto_limit_info');
+    limitBox.classList.remove('bg-green-50', 'border-green-200', 'bg-yellow-50', 'border-yellow-200', 'bg-orange-50', 'border-orange-200');
+    
+    if (limitPercentage <= 75) {
+        limitBox.classList.add('bg-green-50', 'border-green-200');
+    } else if (limitPercentage <= 85) {
+        limitBox.classList.add('bg-yellow-50', 'border-yellow-200');
+    } else {
+        limitBox.classList.add('bg-orange-50', 'border-orange-200');
+    }
 }
 
 function toggleSpendingLimit() {
@@ -592,27 +853,210 @@ function toggleSpendingLimit() {
 
 // Add event listeners for income and goal changes
 document.addEventListener('DOMContentLoaded', function() {
-    toggleGoalFields();
-    
-    // Update auto limit when income or currency changes
-    document.getElementById('monthly_income').addEventListener('input', function() {
-        updateAutoLimit();
-        const goal = document.getElementById('financial_goal').value;
-        if (goal === 'ahorrar') validateSavingsGoal();
-        if (goal === 'pagar_deudas') validateDebtGoal();
-        if (document.querySelector('input[name="spending_limit_type"]:checked').value === 'manual') {
-            validateSpendingLimit();
-        }
+    // Initialize goal sections style
+    document.querySelectorAll('.goal-section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(-10px)';
+        section.style.transition = 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out';
     });
     
+    // Initialize goal cards
+    const selectedGoal = getSelectedGoal();
+    if (selectedGoal) {
+        const selectedCard = document.querySelector(`.goal-card input[value="${selectedGoal}"]`)?.closest('.goal-card');
+        if (selectedCard) {
+            selectedCard.classList.remove('border-gray-300');
+            selectedCard.classList.add('border-blue-500', 'bg-blue-50');
+        }
+    }
+    
+    toggleGoalFields();
+    
+    // Update auto limit when income changes
+    document.getElementById('monthly_income').addEventListener('input', debounce(function() {
+        updateAutoLimit();
+        const goal = getSelectedGoal();
+        if (goal === 'ahorrar') validateSavingsGoal();
+        if (goal === 'pagar_deudas') validateDebtGoal();
+        const limitType = document.querySelector('input[name="spending_limit_type"]:checked');
+        if (limitType && limitType.value === 'manual') {
+            validateSpendingLimit();
+        }
+    }, 300));
+    
+    // Update auto limit when currency changes
     document.getElementById('currency').addEventListener('change', function() {
         updateAutoLimit();
+        const goal = getSelectedGoal();
+        if (goal === 'ahorrar') validateSavingsGoal();
+        if (goal === 'pagar_deudas') validateDebtGoal();
+    });
+    
+    // Update when savings goal changes
+    document.getElementById('savings_goal').addEventListener('input', debounce(function() {
+        validateSavingsGoal();
+        updateAutoLimit();
+    }, 300));
+    
+    document.getElementById('savings_deadline').addEventListener('change', function() {
+        validateSavingsGoal();
+        updateAutoLimit();
+    });
+    
+    // Update when debt amount changes
+    document.getElementById('debt_amount').addEventListener('input', debounce(function() {
+        validateDebtGoal();
+        updateAutoLimit();
+    }, 300));
+    
+    // Update when goal description changes
+    document.getElementById('goal_description').addEventListener('input', debounce(function() {
+        validateOtherGoal();
+    }, 300));
+    
+    // Form validation before submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const goal = getSelectedGoal();
+        let isValid = true;
+        
+        if (!goal) {
+            e.preventDefault();
+            alert('Por favor selecciona un objetivo financiero');
+            isValid = false;
+        }
+        
+        if (goal === 'ahorrar') {
+            const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
+            if (savingsGoal <= 0) {
+                e.preventDefault();
+                alert('Por favor ingresa una meta de ahorro válida');
+                isValid = false;
+            }
+        } else if (goal === 'pagar_deudas') {
+            const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
+            if (debtAmount <= 0) {
+                e.preventDefault();
+                alert('Por favor ingresa el monto de deuda');
+                isValid = false;
+            }
+        } else if (goal === 'otro') {
+            const description = document.getElementById('goal_description').value.trim();
+            if (description.length < 10) {
+                e.preventDefault();
+                alert('Por favor describe tu objetivo (mínimo 10 caracteres)');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            // Scroll to first error
+            const firstError = document.querySelector('.border-red-500, .goal-card');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
     });
     
     // Initialize auto limit display
     updateAutoLimit();
 });
+
+// Debounce function to limit function calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 </script>
+
+<style>
+/* Goal Card Styles */
+.goal-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.goal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.goal-card:active {
+    transform: translateY(0);
+}
+
+.goal-card.border-blue-500 {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Goal Section Animations */
+.goal-section {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.goal-section:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Input Validation Styles */
+input.border-red-500:focus,
+textarea.border-red-500:focus {
+    border-color: #ef4444;
+    ring-color: #ef4444;
+}
+
+input.border-green-500:focus,
+textarea.border-green-500:focus {
+    border-color: #10b981;
+    ring-color: #10b981;
+}
+
+input.border-yellow-500:focus,
+textarea.border-yellow-500:focus {
+    border-color: #eab308;
+    ring-color: #eab308;
+}
+
+/* Auto Limit Info Animation */
+#auto_limit_info {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading state for calculations */
+.calculating {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+    .goal-card {
+        padding: 1rem;
+    }
+    
+    .goal-card h3 {
+        font-size: 1rem;
+    }
+    
+    .goal-card p {
+        font-size: 0.75rem;
+    }
+}
+</style>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
