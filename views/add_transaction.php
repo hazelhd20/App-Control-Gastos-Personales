@@ -14,6 +14,10 @@ $expense_categories = $transaction_model->getCategories($_SESSION['user_id'], 'e
 $income_categories = $transaction_model->getCategories($_SESSION['user_id'], 'income');
 $profile = $profile_model->getByUserId($_SESSION['user_id']);
 
+// Get currency symbol
+$currency_symbols = ['MXN' => '$', 'USD' => '$', 'EUR' => '€'];
+$currency_symbol = $currency_symbols[$profile['currency'] ?? 'MXN'] ?? '$';
+
 $errors = $_SESSION['transaction_errors'] ?? [];
 $old_data = $_SESSION['transaction_data'] ?? [];
 unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
@@ -80,17 +84,18 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <i class="fas fa-dollar-sign mr-2 text-green-600"></i>Monto *
                     </label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span class="text-gray-500 text-lg font-semibold">$</span>
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                            <span class="text-gray-600 text-xl font-bold"><?php echo htmlspecialchars($currency_symbol); ?></span>
                         </div>
-                        <input id="amount" name="amount" type="number" step="0.01" min="0.01" max="999999999.99" required 
+                        <input id="amount" name="amount" type="number" step="0.01" min="0.01" required 
                                value="<?php echo htmlspecialchars($old_data['amount'] ?? ''); ?>"
                                data-min="0.01"
-                               data-max="999999999.99"
-                               class="block w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold transition-all"
-                               placeholder="0.00">
+                               class="block w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold transition-all"
+                               placeholder="0.00"
+                               oninput="validateAmount()">
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Máximo 2 decimales, máximo 999,999,999.99</p>
+                    <p class="mt-1 text-xs text-gray-500">Máximo 2 decimales. Los límites se ajustan según tu moneda.</p>
+                    <p id="amount_warning" class="mt-1 text-xs text-amber-600 hidden"></p>
                 </div>
 
                 <!-- Category (for expenses and income) -->
@@ -136,9 +141,9 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <input id="transaction_date" name="transaction_date" type="date" required 
                                value="<?php echo htmlspecialchars($old_data['transaction_date'] ?? date('Y-m-d')); ?>"
                                max="<?php echo date('Y-m-d'); ?>"
-                               min="<?php echo date('Y-m-d', strtotime('-10 years')); ?>"
+                               min="<?php echo date('Y-m-d', strtotime('-3 years')); ?>"
                                class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                        <p class="mt-1 text-xs text-gray-500">La fecha no puede ser futura ni anterior a hace 10 años</p>
+                        <p class="mt-1 text-xs text-gray-500" id="date_help_text">Gastos: hasta hoy. Ingresos: hasta mañana. Máximo 3-5 años atrás.</p>
                     </div>
                 </div>
 
@@ -261,6 +266,8 @@ function toggleTransactionType() {
     const paymentMethodField = document.getElementById('payment_method_field');
     const categoryInput = document.getElementById('category');
     const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const transactionDate = document.getElementById('transaction_date');
+    const dateHelpText = document.getElementById('date_help_text');
     
     radios.forEach((radio, index) => {
         if (radio.checked) {
@@ -277,6 +284,14 @@ function toggleTransactionType() {
                 // Reset category selection when switching types
                 categoryInput.value = '';
                 populateCategories('expense');
+                // Update date validation for expenses
+                const today = new Date();
+                today.setHours(23, 59, 59, 999);
+                transactionDate.max = today.toISOString().split('T')[0];
+                const threeYearsAgo = new Date();
+                threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+                transactionDate.min = threeYearsAgo.toISOString().split('T')[0];
+                dateHelpText.textContent = 'Gastos: hasta hoy. Máximo 3 años atrás.';
             } else {
                 options[index].classList.add('border-green-500', 'bg-green-50');
                 typeInput.value = 'income';
@@ -287,12 +302,24 @@ function toggleTransactionType() {
                 // Reset category selection when switching types
                 categoryInput.value = '';
                 populateCategories('income');
+                // Update date validation for income
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(23, 59, 59, 999);
+                transactionDate.max = tomorrow.toISOString().split('T')[0];
+                const fiveYearsAgo = new Date();
+                fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+                transactionDate.min = fiveYearsAgo.toISOString().split('T')[0];
+                dateHelpText.textContent = 'Ingresos: hasta mañana. Máximo 5 años atrás.';
             }
         } else {
             options[index].classList.remove('active', 'border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50');
             options[index].classList.add('border-gray-300');
         }
     });
+    
+    // Re-validate amount when type changes
+    validateAmount();
 }
 
 // Payment method selection handler
@@ -320,15 +347,97 @@ updatePaymentMethodStyles();
 document.getElementById('transactionForm').addEventListener('submit', function(e) {
     const categoryInput = document.getElementById('category');
     const categoryError = document.getElementById('category_error');
+    const amountInput = document.getElementById('amount');
+    const amountWarning = document.getElementById('amount_warning');
+    const typeInput = document.getElementById('type_input');
+    const transactionDate = document.getElementById('transaction_date');
     
+    let hasErrors = false;
+    
+    // Validate category
     if (!categoryInput.value) {
         e.preventDefault();
         categoryError.classList.remove('hidden');
-        // Scroll to category field
         categoryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return false;
+        hasErrors = true;
     } else {
         categoryError.classList.add('hidden');
+    }
+    
+    // Validate amount
+    const amount = parseFloat(amountInput.value) || 0;
+    if (amount <= 0) {
+        e.preventDefault();
+        amountWarning.textContent = 'El monto debe ser mayor a 0';
+        amountWarning.classList.remove('hidden');
+        amountWarning.classList.remove('text-amber-600');
+        amountWarning.classList.add('text-red-600');
+        if (!hasErrors) {
+            amountInput.focus();
+            amountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        hasErrors = true;
+    } else {
+        // Validate decimal places
+        const amountStr = amountInput.value.toString();
+        if (amountStr.indexOf('.') !== -1) {
+            const decimalPart = amountStr.split('.')[1];
+            if (decimalPart && decimalPart.length > 2) {
+                e.preventDefault();
+                amountWarning.textContent = 'El monto no puede tener más de 2 decimales';
+                amountWarning.classList.remove('hidden');
+                amountWarning.classList.remove('text-amber-600');
+                amountWarning.classList.add('text-red-600');
+                if (!hasErrors) {
+                    amountInput.focus();
+                    amountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasErrors = true;
+            }
+        }
+    }
+    
+    // Validate payment method for expenses
+    if (typeInput.value === 'expense') {
+        const paymentMethodSelected = document.querySelector('input[name="payment_method"]:checked');
+        if (!paymentMethodSelected) {
+            e.preventDefault();
+            if (!hasErrors) {
+                alert('Por favor selecciona un método de pago para el gasto');
+                document.getElementById('payment_method_field').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            hasErrors = true;
+        }
+    }
+    
+    // Validate date
+    if (transactionDate.value) {
+        const selectedDate = new Date(transactionDate.value);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        
+        if (typeInput.value === 'expense' && selectedDate > today) {
+            e.preventDefault();
+            if (!hasErrors) {
+                alert('La fecha del gasto no puede ser futura');
+                transactionDate.focus();
+            }
+            hasErrors = true;
+        } else if (typeInput.value === 'income' && selectedDate > tomorrow) {
+            e.preventDefault();
+            if (!hasErrors) {
+                alert('La fecha del ingreso no puede ser más de 1 día en el futuro');
+                transactionDate.focus();
+            }
+            hasErrors = true;
+        }
+    }
+    
+    if (hasErrors) {
+        return false;
     }
 });
 
@@ -341,9 +450,59 @@ document.querySelectorAll('.transaction-type-option').forEach((option, index) =>
     });
 });
 
+// Validate amount against monthly income (if available)
+function validateAmount() {
+    const amountInput = document.getElementById('amount');
+    const amountWarning = document.getElementById('amount_warning');
+    const typeInput = document.getElementById('type_input');
+    const amount = parseFloat(amountInput.value) || 0;
+    
+    // Clear warning
+    amountWarning.classList.add('hidden');
+    amountWarning.textContent = '';
+    
+    if (amount > 0) {
+        // Validate decimal places
+        const amountStr = amountInput.value.toString();
+        if (amountStr.indexOf('.') !== -1) {
+            const decimalPart = amountStr.split('.')[1];
+            if (decimalPart && decimalPart.length > 2) {
+                amountWarning.textContent = 'El monto no puede tener más de 2 decimales';
+                amountWarning.classList.remove('hidden');
+                amountWarning.classList.remove('text-amber-600');
+                amountWarning.classList.add('text-red-600');
+                return;
+            }
+        }
+        
+        // Note: We could fetch monthly income via AJAX, but for now we'll just validate format
+        // Server-side validation will handle the actual limits based on currency
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     toggleTransactionType();
+    validateAmount();
+    
+    // Update date input based on initial type
+    const initialType = document.querySelector('.transaction-type-radio:checked')?.value || 'expense';
+    if (initialType === 'expense') {
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        document.getElementById('transaction_date').max = today.toISOString().split('T')[0];
+        const threeYearsAgo = new Date();
+        threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+        document.getElementById('transaction_date').min = threeYearsAgo.toISOString().split('T')[0];
+    } else {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        document.getElementById('transaction_date').max = tomorrow.toISOString().split('T')[0];
+        const fiveYearsAgo = new Date();
+        fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+        document.getElementById('transaction_date').min = fiveYearsAgo.toISOString().split('T')[0];
+    }
 });
 </script>
 

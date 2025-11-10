@@ -18,6 +18,38 @@ class ProfileController {
     }
 
     /**
+     * Get financial limits based on currency
+     * Returns array with min and max values for income, savings, debt, etc.
+     */
+    private function getFinancialLimits($currency) {
+        $limits = [
+            'MXN' => [
+                'min_income' => 1000,        // Salario mínimo mensual aproximado
+                'max_income' => 10000000,    // 10 millones MXN (muy alto pero posible)
+                'min_amount' => 1,           // Mínimo para cualquier monto
+                'max_amount' => 50000000,    // 50 millones MXN (para deudas grandes, ahorros importantes)
+                'min_savings_goal' => 100,   // Mínimo para meta de ahorro
+            ],
+            'USD' => [
+                'min_income' => 500,         // $500 USD mensual (mínimo razonable)
+                'max_income' => 1000000,     // 1 millón USD mensual
+                'min_amount' => 1,
+                'max_amount' => 5000000,     // 5 millones USD
+                'min_savings_goal' => 50,    // $50 USD mínimo
+            ],
+            'EUR' => [
+                'min_income' => 500,         // €500 EUR mensual
+                'max_income' => 1000000,     // 1 millón EUR mensual
+                'min_amount' => 1,
+                'max_amount' => 5000000,     // 5 millones EUR
+                'min_savings_goal' => 50,    // €50 EUR mínimo
+            ]
+        ];
+
+        return $limits[$currency] ?? $limits['MXN'];
+    }
+
+    /**
      * Initial financial setup
      */
     public function initialSetup() {
@@ -57,10 +89,25 @@ class ProfileController {
             if (!in_array($currency, $valid_currencies)) {
                 $errors[] = "La moneda seleccionada no es válida";
             }
+            
+            // Get financial limits based on currency
+            $limits = $this->getFinancialLimits($currency);
+            
+            // Validate monthly income with realistic limits
             if ($monthly_income <= 0) {
                 $errors[] = "El ingreso mensual debe ser mayor a 0";
-            } elseif ($monthly_income > 999999999.99) {
-                $errors[] = "El ingreso mensual es demasiado alto (máximo 999,999,999.99)";
+            } elseif ($monthly_income < $limits['min_income']) {
+                $errors[] = sprintf(
+                    "El ingreso mensual es muy bajo. El mínimo recomendado es %s %s",
+                    number_format($limits['min_income'], 2, '.', ','),
+                    $currency
+                );
+            } elseif ($monthly_income > $limits['max_income']) {
+                $errors[] = sprintf(
+                    "El ingreso mensual es demasiado alto. El máximo permitido es %s %s",
+                    number_format($limits['max_income'], 2, '.', ','),
+                    $currency
+                );
             }
 
             if (empty($start_date)) {
@@ -106,10 +153,21 @@ class ProfileController {
 
                 // Specific validations per goal type
                 if ($financial_goal === 'ahorrar') {
+                    // In initial setup, savings goal is required
                     if ($savings_goal <= 0) {
                         $errors[] = "Debe ingresar una meta de ahorro mayor a 0";
-                    } elseif ($savings_goal > 999999999.99) {
-                        $errors[] = "La meta de ahorro es demasiado alta (máximo 999,999,999.99)";
+                    } elseif ($savings_goal < $limits['min_savings_goal']) {
+                        $errors[] = sprintf(
+                            "La meta de ahorro es muy baja. El mínimo recomendado es %s %s",
+                            number_format($limits['min_savings_goal'], 2, '.', ','),
+                            $currency
+                        );
+                    } elseif ($savings_goal > $limits['max_amount']) {
+                        $errors[] = sprintf(
+                            "La meta de ahorro es demasiado alta. El máximo permitido es %s %s",
+                            number_format($limits['max_amount'], 2, '.', ','),
+                            $currency
+                        );
                     }
                     if (!empty($savings_deadline)) {
                         // Validate date format
@@ -123,21 +181,61 @@ class ProfileController {
                             $deadline_date->setTime(0, 0, 0);
                             if ($deadline_date <= $today) {
                                 $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                            } else {
+                                // Allow up to 30 years for long-term goals (like buying a house)
+                                $max_deadline = clone $today;
+                                $max_deadline->modify('+30 years');
+                                if ($deadline_date > $max_deadline) {
+                                    $errors[] = "La fecha límite no puede ser más de 30 años en el futuro";
+                                }
                             }
                         }
                     }
                 } elseif ($financial_goal === 'pagar_deudas') {
-                    if ($debt_amount <= 0) {
-                        $errors[] = "Debe ingresar el monto de la deuda mayor a 0";
-                    } elseif ($debt_amount > 999999999.99) {
-                        $errors[] = "El monto de la deuda es demasiado alto (máximo 999,999,999.99)";
+                    if ($debt_amount > 0) {
+                        if ($debt_amount < $limits['min_amount']) {
+                            $errors[] = sprintf(
+                                "El monto de la deuda debe ser mayor a %s %s",
+                                number_format($limits['min_amount'], 2, '.', ','),
+                                $currency
+                            );
+                        } elseif ($debt_amount > $limits['max_amount']) {
+                            $errors[] = sprintf(
+                                "El monto de la deuda es demasiado alto. El máximo permitido es %s %s",
+                                number_format($limits['max_amount'], 2, '.', ','),
+                                $currency
+                            );
+                        }
+                        
+                        // Validate debt-to-income ratio (annual)
+                        $annual_income = $monthly_income * 12;
+                        $debt_to_income_ratio = $debt_amount / $annual_income;
+                        
+                        // Warning threshold: if debt is more than 10x annual income, it's very high
+                        if ($debt_to_income_ratio > 10) {
+                            $errors[] = "La deuda es extremadamente alta comparada con tu ingreso anual. Por favor verifica los datos ingresados.";
+                        }
                     }
-                    if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 100)) {
-                        $errors[] = "El número de deudas debe estar entre 1 y 100";
+                    
+                    // More realistic debt count: typically people have 1-20 debts
+                    if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 50)) {
+                        $errors[] = "El número de deudas debe estar entre 1 y 50";
                     }
-                    if ($monthly_payment > 0 && $monthly_payment > 999999999.99) {
-                        $errors[] = "El pago mensual es demasiado alto (máximo 999,999,999.99)";
+                    
+                    if ($monthly_payment > 0) {
+                        if ($monthly_payment > $limits['max_amount']) {
+                            $errors[] = sprintf(
+                                "El pago mensual es demasiado alto. El máximo permitido es %s %s",
+                                number_format($limits['max_amount'], 2, '.', ','),
+                                $currency
+                            );
+                        }
+                        // Validate that monthly payment doesn't exceed available income
+                        if ($monthly_payment > $monthly_income * 0.95) {
+                            $errors[] = "El pago mensual no puede exceder el 95% de tu ingreso mensual. Debes dejar algo para gastos básicos.";
+                        }
                     }
+                    
                     if (!empty($debt_deadline)) {
                         // Validate date format
                         $date_parts = explode('-', $debt_deadline);
@@ -150,6 +248,13 @@ class ProfileController {
                             $deadline_date->setTime(0, 0, 0);
                             if ($deadline_date <= $today) {
                                 $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                            } else {
+                                // Allow up to 15 years for debt payment (mortgages can be longer)
+                                $max_deadline = clone $today;
+                                $max_deadline->modify('+15 years');
+                                if ($deadline_date > $max_deadline) {
+                                    $errors[] = "La fecha objetivo no puede ser más de 15 años en el futuro para pagar deudas";
+                                }
                             }
                         }
                     }
@@ -179,6 +284,12 @@ class ProfileController {
                 // Validate manual spending limit
                 if ($spending_limit <= 0) {
                     $errors[] = "El límite de gasto manual debe ser mayor a 0";
+                } elseif ($spending_limit > $limits['max_amount']) {
+                    $errors[] = sprintf(
+                        "El límite de gasto es demasiado alto. El máximo permitido es %s %s",
+                        number_format($limits['max_amount'], 2, '.', ','),
+                        $currency
+                    );
                 } else {
                     $limit_validation = $this->profile->validateSpendingLimit(
                         $spending_limit,
@@ -327,18 +438,35 @@ class ProfileController {
                 $errors[] = "La moneda seleccionada no es válida";
             }
 
-            // Validate monthly income
+            // Get financial limits based on currency
+            $limits = $this->getFinancialLimits($currency);
+            
+            // Validate monthly income with realistic limits
             if ($monthly_income <= 0) {
                 $errors[] = "El ingreso mensual debe ser mayor a 0";
-            } elseif ($monthly_income > 999999999.99) {
-                $errors[] = "El ingreso mensual es demasiado alto (máximo 999,999,999.99)";
+            } elseif ($monthly_income < $limits['min_income']) {
+                $errors[] = sprintf(
+                    "El ingreso mensual es muy bajo. El mínimo recomendado es %s %s",
+                    number_format($limits['min_income'], 2, '.', ','),
+                    $currency
+                );
+            } elseif ($monthly_income > $limits['max_income']) {
+                $errors[] = sprintf(
+                    "El ingreso mensual es demasiado alto. El máximo permitido es %s %s",
+                    number_format($limits['max_income'], 2, '.', ','),
+                    $currency
+                );
             }
 
             // Validate spending limit
             if ($spending_limit <= 0) {
                 $errors[] = "El límite de gasto debe ser mayor a 0";
-            } elseif ($spending_limit > 999999999.99) {
-                $errors[] = "El límite de gasto es demasiado alto (máximo 999,999,999.99)";
+            } elseif ($spending_limit > $limits['max_amount']) {
+                $errors[] = sprintf(
+                    "El límite de gasto es demasiado alto. El máximo permitido es %s %s",
+                    number_format($limits['max_amount'], 2, '.', ','),
+                    $currency
+                );
             }
 
             // Validate payment methods
@@ -382,8 +510,18 @@ class ProfileController {
                 // Specific validations per goal type
                 if ($financial_goal === 'ahorrar') {
                     if ($savings_goal > 0) {
-                        if ($savings_goal > 999999999.99) {
-                            $errors[] = "La meta de ahorro es demasiado alta (máximo 999,999,999.99)";
+                        if ($savings_goal < $limits['min_savings_goal']) {
+                            $errors[] = sprintf(
+                                "La meta de ahorro es muy baja. El mínimo recomendado es %s %s",
+                                number_format($limits['min_savings_goal'], 2, '.', ','),
+                                $currency
+                            );
+                        } elseif ($savings_goal > $limits['max_amount']) {
+                            $errors[] = sprintf(
+                                "La meta de ahorro es demasiado alta. El máximo permitido es %s %s",
+                                number_format($limits['max_amount'], 2, '.', ','),
+                                $currency
+                            );
                         }
                         if (!empty($savings_deadline)) {
                             // Validate date format
@@ -397,21 +535,60 @@ class ProfileController {
                                 $deadline_date->setTime(0, 0, 0);
                                 if ($deadline_date <= $today) {
                                     $errors[] = "La fecha límite de ahorro debe ser una fecha futura";
+                                } else {
+                                    // Allow up to 30 years for long-term goals
+                                    $max_deadline = clone $today;
+                                    $max_deadline->modify('+30 years');
+                                    if ($deadline_date > $max_deadline) {
+                                        $errors[] = "La fecha límite no puede ser más de 30 años en el futuro";
+                                    }
                                 }
                             }
                         }
                     }
                 } elseif ($financial_goal === 'pagar_deudas') {
                     if ($debt_amount > 0) {
-                        if ($debt_amount > 999999999.99) {
-                            $errors[] = "El monto de la deuda es demasiado alto (máximo 999,999,999.99)";
+                        if ($debt_amount < $limits['min_amount']) {
+                            $errors[] = sprintf(
+                                "El monto de la deuda debe ser mayor a %s %s",
+                                number_format($limits['min_amount'], 2, '.', ','),
+                                $currency
+                            );
+                        } elseif ($debt_amount > $limits['max_amount']) {
+                            $errors[] = sprintf(
+                                "El monto de la deuda es demasiado alto. El máximo permitido es %s %s",
+                                number_format($limits['max_amount'], 2, '.', ','),
+                                $currency
+                            );
                         }
-                        if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 100)) {
-                            $errors[] = "El número de deudas debe estar entre 1 y 100";
+                        
+                        // Validate debt-to-income ratio (annual)
+                        $annual_income = $monthly_income * 12;
+                        $debt_to_income_ratio = $debt_amount / $annual_income;
+                        
+                        if ($debt_to_income_ratio > 10) {
+                            $errors[] = "La deuda es extremadamente alta comparada con tu ingreso anual. Por favor verifica los datos ingresados.";
                         }
-                        if ($monthly_payment > 0 && $monthly_payment > 999999999.99) {
-                            $errors[] = "El pago mensual es demasiado alto (máximo 999,999,999.99)";
+                        
+                        // More realistic debt count: typically people have 1-20 debts
+                        if ($debt_count > 0 && ($debt_count < 1 || $debt_count > 50)) {
+                            $errors[] = "El número de deudas debe estar entre 1 y 50";
                         }
+                        
+                        if ($monthly_payment > 0) {
+                            if ($monthly_payment > $limits['max_amount']) {
+                                $errors[] = sprintf(
+                                    "El pago mensual es demasiado alto. El máximo permitido es %s %s",
+                                    number_format($limits['max_amount'], 2, '.', ','),
+                                    $currency
+                                );
+                            }
+                            // Validate that monthly payment doesn't exceed available income
+                            if ($monthly_payment > $monthly_income * 0.95) {
+                                $errors[] = "El pago mensual no puede exceder el 95% de tu ingreso mensual. Debes dejar algo para gastos básicos.";
+                            }
+                        }
+                        
                         if (!empty($debt_deadline)) {
                             // Validate date format
                             $date_parts = explode('-', $debt_deadline);
@@ -424,6 +601,13 @@ class ProfileController {
                                 $deadline_date->setTime(0, 0, 0);
                                 if ($deadline_date <= $today) {
                                     $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                                } else {
+                                    // Allow up to 15 years for debt payment
+                                    $max_deadline = clone $today;
+                                    $max_deadline->modify('+15 years');
+                                    if ($deadline_date > $max_deadline) {
+                                        $errors[] = "La fecha objetivo no puede ser más de 15 años en el futuro para pagar deudas";
+                                    }
                                 }
                             }
                         }

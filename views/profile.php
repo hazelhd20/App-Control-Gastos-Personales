@@ -263,7 +263,7 @@ unset($_SESSION['password_errors']);
                                                oninput="updateCalculations()">
                                         <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                     </div>
-                                    <p class="mt-1 text-xs text-gray-500">Mínimo 0.01, máximo 999,999,999.99.</p>
+                                    <p class="mt-1 text-xs text-gray-500">Ingresa tu ingreso mensual. Los límites se ajustan según la moneda seleccionada.</p>
                                 </div>
                                 <div>
                                     <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
@@ -289,7 +289,7 @@ unset($_SESSION['password_errors']);
                                                oninput="updateCalculations()">
                                         <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                     </div>
-                                    <p class="mt-1 text-xs text-gray-500" id="spending_limit_info"></p>
+                                    <p class="mt-1 text-xs text-gray-500" id="spending_limit_info">El límite de gasto se ajusta según tu ingreso y objetivos.</p>
                                 </div>
                                 <div>
                                     <label for="financial_goal" class="block text-sm font-medium text-gray-700 mb-1">
@@ -324,7 +324,7 @@ unset($_SESSION['password_errors']);
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
                                             <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
-                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Meta de ahorro deseada.</p>
                                     </div>
                                     <div>
                                         <label for="savings_deadline" class="block text-sm font-medium text-gray-700 mb-1">
@@ -357,16 +357,16 @@ unset($_SESSION['password_errors']);
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                             <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
-                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Monto total de deudas.</p>
                                     </div>
                                     <div>
                                         <label for="debt_count" class="block text-sm font-medium text-gray-700 mb-1">
                                             Número de Deudas
                                         </label>
-                                        <input id="debt_count" name="debt_count" type="number" step="1" min="1" max="100"
+                                        <input id="debt_count" name="debt_count" type="number" step="1" min="1" max="50"
                                                value="<?php echo htmlspecialchars($profile_data['debt_count'] ?? $profile['debt_count'] ?? ''); ?>"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                        <p class="mt-1 text-xs text-gray-500">Opcional. Entre 1 y 100.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Entre 1 y 50 deudas.</p>
                                     </div>
                                     <div>
                                         <label for="debt_deadline" class="block text-sm font-medium text-gray-700 mb-1">
@@ -390,7 +390,7 @@ unset($_SESSION['password_errors']);
                                                    class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                             <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
-                                        <p class="mt-1 text-xs text-gray-500">Opcional. Máximo 999,999,999.99.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Opcional. Pago mensual que realizas para las deudas.</p>
                                     </div>
                                 </div>
                             </div>

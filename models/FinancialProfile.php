@@ -269,9 +269,11 @@ class FinancialProfile {
                     );
                 }
 
-                // Check if deadline is too far (more than 10 years)
-                if ($months > 120) {
-                    $result['warnings'][] = 'La fecha límite es muy lejana. Considera establecer una meta más cercana para mantener la motivación.';
+                // Check if deadline is too far (more than 30 years) - only warning, not error
+                if ($months > 360) {
+                    $result['warnings'][] = 'La fecha límite es muy lejana (más de 30 años). Considera establecer una meta más cercana para mantener la motivación.';
+                } elseif ($months > 120) {
+                    $result['warnings'][] = 'La fecha límite es lejana (más de 10 años). Asegúrate de revisar tu progreso regularmente.';
                 }
             }
         } elseif ($financial_goal === 'pagar_deudas') {
@@ -309,9 +311,11 @@ class FinancialProfile {
                     );
                 }
 
-                // Check if deadline is too far (more than 10 years)
-                if ($months > 120) {
-                    $result['warnings'][] = 'La fecha objetivo es muy lejana. Considera establecer una fecha más cercana para reducir intereses.';
+                // Check if deadline is too far (more than 15 years) - only warning, not error
+                if ($months > 180) {
+                    $result['warnings'][] = 'La fecha objetivo es muy lejana (más de 15 años). Considera establecer una fecha más cercana para reducir intereses.';
+                } elseif ($months > 120) {
+                    $result['warnings'][] = 'La fecha objetivo es lejana (más de 10 años). Considera aumentar el pago mensual si es posible.';
                 }
             }
 
@@ -328,9 +332,16 @@ class FinancialProfile {
                 // Check if monthly payment is sufficient to pay debt in reasonable time
                 if ($monthly_payment > 0) {
                     $months_to_pay = ceil($debt_amount / $monthly_payment);
-                    if ($months_to_pay > 120) {
+                    if ($months_to_pay > 180) {
                         $result['warnings'][] = sprintf(
-                            'Con un pago mensual de %s, tardarías aproximadamente %d meses (%.1f años) en pagar tu deuda. Considera aumentar el pago mensual.',
+                            'Con un pago mensual de %s, tardarías aproximadamente %d meses (%.1f años) en pagar tu deuda. Esto es demasiado tiempo. Considera aumentar el pago mensual o buscar opciones de refinanciamiento.',
+                            number_format($monthly_payment, 2),
+                            $months_to_pay,
+                            $months_to_pay / 12
+                        );
+                    } elseif ($months_to_pay > 120) {
+                        $result['warnings'][] = sprintf(
+                            'Con un pago mensual de %s, tardarías aproximadamente %d meses (%.1f años) en pagar tu deuda. Considera aumentar el pago mensual si es posible.',
                             number_format($monthly_payment, 2),
                             $months_to_pay,
                             $months_to_pay / 12
@@ -340,10 +351,21 @@ class FinancialProfile {
             }
 
             // Check if debt is reasonable compared to income
-            $debt_to_income_ratio = $debt_amount / ($monthly_income * 12); // Annual income
+            $annual_income = $monthly_income * 12;
+            $debt_to_income_ratio = $debt_amount / $annual_income;
             
-            if ($debt_to_income_ratio > 5) {
-                $result['warnings'][] = 'Tu deuda es muy alta comparada con tu ingreso anual. Considera buscar asesoría financiera profesional.';
+            if ($debt_to_income_ratio > 10) {
+                $result['warnings'][] = sprintf(
+                    'Tu deuda (%s) es extremadamente alta comparada con tu ingreso anual (%s). La relación deuda/ingreso es %.1f:1. Considera buscar asesoría financiera profesional.',
+                    number_format($debt_amount, 2),
+                    number_format($annual_income, 2),
+                    $debt_to_income_ratio
+                );
+            } elseif ($debt_to_income_ratio > 5) {
+                $result['warnings'][] = sprintf(
+                    'Tu deuda es muy alta comparada con tu ingreso anual. La relación deuda/ingreso es %.1f:1. Considera buscar asesoría financiera profesional.',
+                    $debt_to_income_ratio
+                );
             }
 
             // Calculate minimum payment to pay in 24 months (if no deadline or payment specified)
