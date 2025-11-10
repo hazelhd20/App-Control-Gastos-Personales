@@ -44,7 +44,8 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                         <input id="monthly_income" name="monthly_income" type="number" step="0.01" min="0" required 
                                value="<?php echo htmlspecialchars($old_data['monthly_income'] ?? ''); ?>"
                                class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="15000.00">
+                               placeholder="15000.00"
+                               oninput="updateAutoLimit();">
                     </div>
 
                     <div>
@@ -243,7 +244,7 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                                    value="<?php echo htmlspecialchars($old_data['savings_goal'] ?? ''); ?>"
                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="10000.00"
-                                   oninput="validateSavingsGoal()">
+                                   oninput="calculateRecommendedDeadline(); validateSavingsGoal();">
                             <p class="mt-1 text-xs text-gray-500">Ingresa el monto total que deseas ahorrar</p>
                         </div>
                         <div>
@@ -254,8 +255,14 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                                    value="<?php echo htmlspecialchars($old_data['savings_deadline'] ?? ''); ?>"
                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
-                                   onchange="validateSavingsGoal()">
-                            <p class="mt-1 text-xs text-gray-500">Fecha límite para alcanzar tu meta (opcional)</p>
+                                   onchange="validateSavingsGoal()"
+                                   onfocus="markDeadlineAsManuallySet()">
+                            <p class="mt-1 text-xs text-gray-500">
+                                <span id="deadline_recommendation_text" class="hidden text-blue-600 font-medium">
+                                    <i class="fas fa-lightbulb mr-1"></i>Fecha recomendada establecida automáticamente
+                                </span>
+                                <span id="deadline_manual_text">Fecha límite para alcanzar tu meta (opcional)</span>
+                            </p>
                         </div>
                     </div>
                     <div id="savings_info" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
@@ -589,6 +596,7 @@ function toggleGoalFields() {
                 document.getElementById('savings_deadline').required = false;
                 document.getElementById('debt_amount').required = false;
                 document.getElementById('goal_description').required = false;
+                calculateRecommendedDeadline();
                 validateSavingsGoal();
             }, 50);
         } else if (goal === 'pagar_deudas') {
@@ -635,6 +643,101 @@ function hideAllInfoBoxes() {
     document.getElementById('limit_info').classList.add('hidden');
     document.getElementById('limit_warning').classList.add('hidden');
     document.getElementById('auto_limit_info').classList.add('hidden');
+}
+
+// Track if deadline was manually set by user
+let deadlineManuallySet = false;
+let hasInitialDeadline = false;
+
+// Initialize deadline tracking
+document.addEventListener('DOMContentLoaded', function() {
+    const initialDeadline = document.getElementById('savings_deadline').value;
+    if (initialDeadline) {
+        hasInitialDeadline = true;
+        deadlineManuallySet = true;
+    }
+});
+
+function markDeadlineAsManuallySet() {
+    deadlineManuallySet = true;
+    document.getElementById('deadline_recommendation_text').classList.add('hidden');
+    document.getElementById('deadline_manual_text').classList.remove('hidden');
+}
+
+function calculateRecommendedDeadline() {
+    // Only calculate if deadline hasn't been manually set
+    if (deadlineManuallySet && hasInitialDeadline) {
+        return;
+    }
+    
+    // Only calculate for savings goal
+    const financialGoal = getSelectedGoal();
+    if (financialGoal !== 'ahorrar') {
+        return;
+    }
+    
+    const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
+    const monthlyIncome = getMonthlyIncome();
+    
+    // Don't calculate if we don't have both values
+    if (savingsGoal <= 0 || monthlyIncome <= 0) {
+        return;
+    }
+    
+    // Only auto-set if user hasn't manually set a deadline
+    if (deadlineManuallySet && !hasInitialDeadline) {
+        return;
+    }
+    
+    // Calculate recommended savings percentage (25% of income as balanced recommendation)
+    const recommendedMonthlySavings = monthlyIncome * 0.25;
+    
+    // Calculate months needed to reach goal
+    const monthsNeeded = Math.ceil(savingsGoal / recommendedMonthlySavings);
+    
+    // Set reasonable bounds (minimum 3 months, maximum 60 months / 5 years)
+    const minMonths = 3;
+    const maxMonths = 60;
+    const finalMonths = Math.max(minMonths, Math.min(maxMonths, monthsNeeded));
+    
+    // Calculate recommended date
+    const today = new Date();
+    const recommendedDate = new Date(today);
+    recommendedDate.setMonth(recommendedDate.getMonth() + finalMonths);
+    
+    // Format date as YYYY-MM-DD
+    const year = recommendedDate.getFullYear();
+    const month = String(recommendedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(recommendedDate.getDate()).padStart(2, '0');
+    const recommendedDateString = `${year}-${month}-${day}`;
+    
+    // Set the deadline field
+    const deadlineField = document.getElementById('savings_deadline');
+    const currentValue = deadlineField.value;
+    
+    // Only set if field is empty or if it wasn't manually set by user
+    if (!currentValue || (!deadlineManuallySet && !hasInitialDeadline)) {
+        deadlineField.value = recommendedDateString;
+        
+        // Show recommendation message only if we just set it (was empty)
+        if (!currentValue) {
+            const recommendationText = document.getElementById('deadline_recommendation_text');
+            const manualText = document.getElementById('deadline_manual_text');
+            
+            if (recommendationText && manualText) {
+                recommendationText.classList.remove('hidden');
+                manualText.classList.add('hidden');
+                
+                // Hide recommendation message after 5 seconds
+                setTimeout(() => {
+                    if (!deadlineManuallySet) {
+                        recommendationText.classList.add('hidden');
+                        manualText.classList.remove('hidden');
+                    }
+                }, 5000);
+            }
+        }
+    }
 }
 
 function validateSavingsGoal() {
@@ -1049,20 +1152,51 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('currency').addEventListener('change', function() {
         updateAutoLimit();
         const goal = getSelectedGoal();
-        if (goal === 'ahorrar') validateSavingsGoal();
+        if (goal === 'ahorrar') {
+            calculateRecommendedDeadline();
+            validateSavingsGoal();
+        }
         if (goal === 'pagar_deudas') validateDebtGoal();
     });
     
+    // Update when monthly income changes
+    document.getElementById('monthly_income').addEventListener('input', debounce(function() {
+        updateAutoLimit();
+        const goal = getSelectedGoal();
+        if (goal === 'ahorrar') {
+            calculateRecommendedDeadline();
+            validateSavingsGoal();
+        }
+        if (goal === 'pagar_deudas') validateDebtGoal();
+    }, 300));
+    
     // Update when savings goal changes
     document.getElementById('savings_goal').addEventListener('input', debounce(function() {
+        calculateRecommendedDeadline();
         validateSavingsGoal();
         updateAutoLimit();
     }, 300));
     
     document.getElementById('savings_deadline').addEventListener('change', function() {
+        // Mark as manually set when user changes it (only if not initial load)
+        if (!hasInitialDeadline) {
+            deadlineManuallySet = true;
+            markDeadlineAsManuallySet();
+        }
         validateSavingsGoal();
         updateAutoLimit();
     });
+    
+    // Calculate recommended deadline on page load if goal and income are set
+    setTimeout(function() {
+        const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
+        const monthlyIncome = getMonthlyIncome();
+        const financialGoal = getSelectedGoal();
+        
+        if (financialGoal === 'ahorrar' && savingsGoal > 0 && monthlyIncome > 0 && !hasInitialDeadline) {
+            calculateRecommendedDeadline();
+        }
+    }, 200);
     
     // Update when debt amount changes
     document.getElementById('debt_amount').addEventListener('input', debounce(function() {
