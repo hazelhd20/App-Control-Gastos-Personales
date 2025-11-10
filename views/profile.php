@@ -46,22 +46,24 @@ unset($_SESSION['password_errors']);
 ?>
 
 <div class="min-h-screen bg-gray-50 py-6 sm:py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Mi Perfil</h1>
-            <p class="text-gray-600 mt-2">Administra tu información personal y configuración financiera</p>
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                <i class="fas fa-user mr-2 sm:mr-3 text-blue-600"></i>Mi Perfil
+            </h1>
+            <p class="text-sm sm:text-base text-gray-600 mt-2">Administra tu información personal y configuración financiera</p>
         </div>
 
         <?php if ($flash): ?>
-            <div class="mb-6 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+            <div class="mb-4 sm:mb-6 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
                 <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                 <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($errors)): ?>
-            <div class="mb-6 alert-danger">
+            <div class="mb-4 sm:mb-6 alert-danger">
                 <i class="fas fa-exclamation-circle"></i>
                 <div class="flex-1">
                     <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
@@ -74,11 +76,11 @@ unset($_SESSION['password_errors']);
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Sidebar - Summary Cards -->
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-span-1 space-y-4 sm:space-y-6">
                 <!-- User Card -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                             <i class="fas fa-user text-blue-600 text-xl"></i>
@@ -101,7 +103,7 @@ unset($_SESSION['password_errors']);
                 </div>
 
                 <!-- Financial Summary -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                     <h3 class="font-semibold text-gray-900 mb-4">Resumen Financiero</h3>
                     <div class="space-y-4">
                         <div>
@@ -137,7 +139,7 @@ unset($_SESSION['password_errors']);
                 </div>
 
                 <!-- Goal Card -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                     <h3 class="font-semibold text-gray-900 mb-4">Objetivo</h3>
                     <?php
                     $goals = [
@@ -182,10 +184,12 @@ unset($_SESSION['password_errors']);
             </div>
 
             <!-- Main Content - Forms -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-2 space-y-4 sm:space-y-6">
                 <!-- Profile Form -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Información Personal</h2>
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
+                        <i class="fas fa-user-edit mr-2 text-blue-600"></i>Información Personal
+                    </h2>
 
                     <form action="<?php echo BASE_URL; ?>public/index.php?action=update-profile" method="POST" class="space-y-6" data-validate="true">
                         <!-- Personal Information -->
@@ -403,11 +407,13 @@ unset($_SESSION['password_errors']);
                 </div>
 
                 <!-- Change Password Section -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Cambiar Contraseña</h2>
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
+                        <i class="fas fa-key mr-2 text-blue-600"></i>Cambiar Contraseña
+                    </h2>
 
                     <?php if (!empty($password_errors)): ?>
-                        <div class="mb-6 alert-danger">
+                        <div class="mb-4 sm:mb-6 alert-danger">
                             <i class="fas fa-exclamation-circle"></i>
                             <div class="flex-1">
                                 <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
