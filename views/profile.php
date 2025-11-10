@@ -20,13 +20,16 @@ $month = date('m');
 $summary = $transaction_model->getMonthlySummary($user_id, $year, $month);
 $total_expenses = $summary['total_expenses'] ?? 0;
 $total_income = $summary['total_income'] ?? 0;
-$balance = $profile['monthly_income'] + $total_income - $total_expenses;
+$balance = $profile['monthly_income'] + $total_income - $total_expenses; // Monthly balance for display
 $spending_percentage = $profile['spending_limit'] > 0 ? ($total_expenses / $profile['spending_limit']) * 100 : 0;
+
+// Calculate total accumulated savings for savings goal progress
+$total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
 
 // Calculate progress for goals
 $savings_progress = 0;
-if ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal'] > 0 && $balance > 0) {
-    $savings_progress = min(100, ($balance / $profile['savings_goal']) * 100);
+if ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal'] > 0) {
+    $savings_progress = min(100, max(0, ($total_savings_balance / $profile['savings_goal']) * 100));
 }
 
 // Calculate days since start

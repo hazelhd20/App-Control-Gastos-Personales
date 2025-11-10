@@ -248,5 +248,28 @@ class Transaction {
         
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get total accumulated savings balance
+     * This calculates the total savings from all transactions (income - expenses)
+     * This is used for savings goal progress, not just monthly balance
+     */
+    public function getTotalSavingsBalance($user_id) {
+        $query = "SELECT 
+                    SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+                    SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses
+                  FROM " . $this->table . " 
+                  WHERE user_id = :user_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        $total_income = $result['total_income'] ?? 0;
+        $total_expenses = $result['total_expenses'] ?? 0;
+        
+        return $total_income - $total_expenses;
+    }
 }
 

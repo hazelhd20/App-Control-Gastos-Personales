@@ -18,6 +18,12 @@ $month = isset($_GET['month']) ? intval($_GET['month']) : date('m');
 
 $summary = $transaction_model->getMonthlySummary($user_id, $year, $month);
 $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month);
+
+// Calculate monthly balance for display
+$monthly_balance = ($summary['total_income'] ?? 0) - ($summary['total_expenses'] ?? 0);
+
+// Calculate total accumulated savings for savings goal progress
+$total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
 ?>
 
 <div class="min-h-screen bg-gray-50 py-6 sm:py-8">
@@ -86,12 +92,9 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
             </div>
 
             <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-                <p class="text-xs sm:text-sm opacity-90 mb-2">Balance</p>
+                <p class="text-xs sm:text-sm opacity-90 mb-2">Balance del Mes</p>
                 <p class="text-2xl sm:text-3xl font-bold">
-                    <?php 
-                    $balance = ($summary['total_income'] ?? 0) - ($summary['total_expenses'] ?? 0);
-                    echo formatCurrency($balance, $profile['currency']); 
-                    ?>
+                    <?php echo formatCurrency($monthly_balance, $profile['currency']); ?>
                 </p>
             </div>
 
@@ -218,24 +221,24 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro Actual</p>
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro Acumulado</p>
                         <p class="text-2xl sm:text-3xl font-bold text-green-600">
-                            <?php echo formatCurrency($balance, $profile['currency']); ?>
+                            <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
                         <p class="text-xs sm:text-sm text-gray-600 mb-2">Progreso</p>
                         <p class="text-2xl sm:text-3xl font-bold text-purple-600">
                             <?php 
-                            $progress = $profile['savings_goal'] > 0 ? ($balance / $profile['savings_goal']) * 100 : 0;
-                            echo round($progress) . '%'; 
+                            $savings_progress = $profile['savings_goal'] > 0 ? (max(0, $total_savings_balance) / $profile['savings_goal']) * 100 : 0;
+                            echo round(min(100, max(0, $savings_progress)), 1) . '%'; 
                             ?>
                         </p>
                     </div>
                 </div>
                 <div class="mt-6 w-full bg-gray-200 rounded-full h-4">
                     <div class="bg-gradient-to-r from-blue-500 to-green-500 h-4 rounded-full transition-all duration-500" 
-                         style="width: <?php echo min(100, round($progress)); ?>%"></div>
+                         style="width: <?php echo min(100, max(0, round($savings_progress))); ?>%"></div>
                 </div>
             </div>
         <?php endif; ?>
@@ -258,18 +261,22 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
                         <?php endif; ?>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro para Pago</p>
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Disponible para Pago</p>
                         <p class="text-2xl sm:text-3xl font-bold text-blue-600">
-                            <?php echo formatCurrency(max(0, $balance), $profile['currency']); ?>
+                            <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
                         </p>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Progreso</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-green-600">
-                            <?php 
-                            $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $balance) / $profile['debt_amount']) * 100 : 0;
-                            echo round($debt_progress) . '%'; 
-                            ?>
+                        <p class="text-xs sm:text-sm text-gray-600 mb-2">Deuda Restante</p>
+                        <?php 
+                        $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $total_savings_balance) / $profile['debt_amount']) * 100 : 0;
+                        $debt_remaining = max(0, $profile['debt_amount'] - max(0, $total_savings_balance));
+                        ?>
+                        <p class="text-2xl sm:text-3xl font-bold <?php echo $debt_remaining > 0 ? 'text-orange-600' : 'text-green-600'; ?>">
+                            <?php echo formatCurrency($debt_remaining, $profile['currency']); ?>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <?php echo round(min(100, max(0, $debt_progress)), 1); ?>% cubierto
                         </p>
                     </div>
                     <?php if (isset($profile['monthly_payment']) && $profile['monthly_payment'] > 0): ?>

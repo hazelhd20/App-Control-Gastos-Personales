@@ -22,8 +22,11 @@ $alerts = $alert_model->getUnreadByUserId($user_id);
 
 $total_income = $profile['monthly_income'] + ($summary['total_income'] ?? 0);
 $total_expenses = $summary['total_expenses'] ?? 0;
-$balance = $total_income - $total_expenses;
+$balance = $total_income - $total_expenses; // Monthly balance for display
 $spending_percentage = $profile['spending_limit'] > 0 ? ($total_expenses / $profile['spending_limit']) * 100 : 0;
+
+// Calculate total accumulated savings for savings goal progress
+$total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
 
 $flash = getFlashMessage();
 ?>
@@ -229,15 +232,49 @@ $flash = getFlashMessage();
                             <i class="fas fa-bullseye mr-2"></i>Meta de Ahorro
                         </p>
                         <p class="text-2xl font-bold text-blue-600">
-                            <?php echo formatCurrency($balance, $profile['currency']); ?>
+                            <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
                         </p>
                         <p class="text-xs text-blue-700 mt-1">
                             de <?php echo formatCurrency($profile['savings_goal'], $profile['currency']); ?>
                         </p>
                         <div class="mt-2 w-full bg-blue-200 rounded-full h-2">
+                            <?php 
+                            $savings_progress = $profile['savings_goal'] > 0 ? (max(0, $total_savings_balance) / $profile['savings_goal']) * 100 : 0;
+                            ?>
                             <div class="bg-blue-600 h-2 rounded-full" 
-                                 style="width: <?php echo min(100, ($balance / $profile['savings_goal']) * 100); ?>%"></div>
+                                 style="width: <?php echo min(100, max(0, $savings_progress)); ?>%"></div>
                         </div>
+                        <p class="text-xs text-blue-600 mt-1">
+                            <?php echo round(min(100, max(0, $savings_progress)), 1); ?>% completado
+                        </p>
+                    </div>
+                <?php elseif ($profile['financial_goal'] === 'pagar_deudas' && $profile['debt_amount']): ?>
+                    <div class="mt-6 p-4 bg-red-50 rounded-lg">
+                        <p class="text-sm font-medium text-red-900 mb-2">
+                            <i class="fas fa-hand-holding-usd mr-2"></i>Pago de Deudas
+                        </p>
+                        <p class="text-lg font-bold text-red-600">
+                            Deuda: <?php echo formatCurrency($profile['debt_amount'], $profile['currency']); ?>
+                        </p>
+                        <p class="text-2xl font-bold text-blue-600 mt-2">
+                            Disponible: <?php echo formatCurrency(max(0, $total_savings_balance), $profile['currency']); ?>
+                        </p>
+                        <?php 
+                        // Calculate progress: how much of the debt can be paid with current savings
+                        $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $total_savings_balance) / $profile['debt_amount']) * 100 : 0;
+                        $debt_remaining = max(0, $profile['debt_amount'] - max(0, $total_savings_balance));
+                        ?>
+                        <div class="mt-2 w-full bg-red-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full transition-all" 
+                                 style="width: <?php echo min(100, max(0, $debt_progress)); ?>%"></div>
+                        </div>
+                        <p class="text-xs text-red-600 mt-1">
+                            <?php if ($debt_progress >= 100): ?>
+                                ✓ Tienes suficiente para pagar la deuda
+                            <?php else: ?>
+                                Falta: <?php echo formatCurrency($debt_remaining, $profile['currency']); ?> (<?php echo round(100 - min(100, max(0, $debt_progress)), 1); ?>%)
+                            <?php endif; ?>
+                        </p>
                     </div>
                 <?php endif; ?>
             </div>
