@@ -98,7 +98,7 @@ class User {
      * Get user by ID
      */
     public function getById($id) {
-        $query = "SELECT id, full_name, email, phone, occupation, created_at 
+        $query = "SELECT id, full_name, email, phone, occupation, email_verified, created_at 
                   FROM " . $this->table . " 
                   WHERE id = :id LIMIT 1";
         $stmt = $this->conn->prepare($query);
