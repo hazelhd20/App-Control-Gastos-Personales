@@ -27,9 +27,9 @@ $valid_token = $user->verifyResetToken($token);
             </div>
 
             <?php if (!$valid_token): ?>
-                <div class="mt-6 p-4 rounded-lg alert-danger">
+                <div class="mt-6 alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
                     <p class="text-sm">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
                         El enlace de recuperación ha expirado o no es válido. Por favor solicita uno nuevo.
                     </p>
                 </div>
@@ -41,24 +41,30 @@ $valid_token = $user->verifyResetToken($token);
                 </div>
             <?php else: ?>
                 <?php if (!empty($errors)): ?>
-                    <div class="mt-6 p-4 rounded-lg alert-danger">
-                        <ul class="list-disc list-inside text-sm">
-                            <?php foreach ($errors as $error): ?>
-                                <li><?php echo htmlspecialchars($error); ?></li>
-                            <?php endforeach; ?>
-                        </ul>
+                    <div class="mt-6 alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div class="flex-1">
+                            <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                <?php foreach ($errors as $error): ?>
+                                    <li><?php echo htmlspecialchars($error); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
                     </div>
                 <?php endif; ?>
 
-                <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=reset-password" method="POST">
+                <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=reset-password" method="POST" data-validate="true" data-validate-on-input="true">
                     <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
 
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">
+                        <label for="password" class="block text-sm font-medium text-gray-700" data-label="Nueva Contraseña">
                             <i class="fas fa-lock mr-2 text-blue-600"></i>Nueva Contraseña
                         </label>
                         <div class="relative mt-1">
                             <input id="password" name="password" type="password" required 
+                                   data-validate-password="true"
+                                   data-min-length="8"
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="••••••••">
                             <span class="absolute right-3 top-3 toggle-password cursor-pointer">
@@ -71,11 +77,12 @@ $valid_token = $user->verifyResetToken($token);
                     </div>
 
                     <div>
-                        <label for="confirm_password" class="block text-sm font-medium text-gray-700">
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700" data-label="Confirmar Nueva Contraseña">
                             <i class="fas fa-lock mr-2 text-blue-600"></i>Confirmar Nueva Contraseña
                         </label>
                         <div class="relative mt-1">
                             <input id="confirm_password" name="confirm_password" type="password" required 
+                                   data-confirm-password="password"
                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="••••••••">
                             <span class="absolute right-3 top-3 toggle-password cursor-pointer">

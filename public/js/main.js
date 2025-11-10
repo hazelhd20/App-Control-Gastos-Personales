@@ -56,40 +56,35 @@ function playAlertSound() {
 }
 
 /**
- * Form Validation
+ * Form Validation (Unified System)
+ * Uses FormValidator class from form-validation.js
  */
 function initializeFormValidation() {
-    const forms = document.querySelectorAll('form[data-validate]');
+    // Initialize form validators for forms with data-validate attribute
+    if (typeof initializeFormValidators === 'function') {
+        initializeFormValidators();
+    }
     
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!validateForm(form)) {
-                e.preventDefault();
-            }
-        });
-    });
-}
-
-/**
- * Validate form
- */
-function validateForm(form) {
-    let isValid = true;
-    const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-    
-    inputs.forEach(input => {
-        if (!input.value.trim()) {
-            isValid = false;
-            input.classList.add('border-red-500');
-            
-            // Remove error class on input
-            input.addEventListener('input', function() {
-                this.classList.remove('border-red-500');
-            });
+    // Legacy support: Add data-validate to forms that should be validated
+    document.querySelectorAll('form').forEach(form => {
+        // Skip if already has validator
+        if (form.hasAttribute('data-validator')) {
+            return;
+        }
+        
+        // Add basic validation to forms with required fields
+        const hasRequiredFields = form.querySelectorAll('input[required], select[required], textarea[required]').length > 0;
+        if (hasRequiredFields && !form.hasAttribute('data-no-validate')) {
+            form.setAttribute('data-validate', 'true');
+            form.setAttribute('data-validate-on-input', 'true');
+            form.setAttribute('data-validate-on-blur', 'true');
         }
     });
     
-    return isValid;
+    // Re-initialize validators after adding attributes
+    if (typeof initializeFormValidators === 'function') {
+        initializeFormValidators();
+    }
 }
 
 /**

@@ -1,17 +1,8 @@
-    <!-- Scripts -->
-    <script src="<?php echo ASSETS_URL; ?>js/main.js"></script>
+    <!-- Form Validation System (must load before main.js) -->
+    <script src="<?php echo BASE_URL; ?>public/js/form-validation.js"></script>
     
-    <script>
-        // Flash message auto-hide
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert-auto-hide');
-            alerts.forEach(alert => {
-                alert.style.transition = 'opacity 0.5s ease';
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 5000);
-    </script>
+    <!-- Main JavaScript -->
+    <script src="<?php echo BASE_URL; ?>public/js/main.js"></script>
 </body>
 </html>
 

@@ -56,7 +56,8 @@ $flash = getFlashMessage();
         </div>
 
         <?php if ($flash): ?>
-            <div class="mb-6 p-4 rounded-lg alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+            <div class="mb-6 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                 <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
             </div>
         <?php endif; ?>

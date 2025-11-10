@@ -31,7 +31,8 @@ $flash = getFlashMessage();
 <div class="min-h-screen bg-gray-50 pb-12">
     <?php if ($flash): ?>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            <div class="p-4 rounded-lg alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+            <div class="alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                 <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
             </div>
         </div>
@@ -52,7 +53,7 @@ $flash = getFlashMessage();
         <?php if (!empty($alerts)): ?>
             <div class="mb-6 space-y-3">
                 <?php foreach ($alerts as $alert): ?>
-                    <div class="p-4 rounded-lg <?php echo $alert['type'] === 'limit_exceeded' ? 'alert-danger' : 'alert-warning'; ?>">
+                    <div class="<?php echo $alert['type'] === 'limit_exceeded' ? 'alert-danger' : 'alert-warning'; ?>">
                         <div class="flex items-start">
                             <i class="fas fa-exclamation-triangle text-xl mr-3"></i>
                             <p class="flex-1"><?php echo htmlspecialchars($alert['message']); ?></p>

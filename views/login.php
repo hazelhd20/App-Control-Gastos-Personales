@@ -19,12 +19,13 @@ $flash = getFlashMessage();
             </div>
 
             <?php if ($flash): ?>
-                <div class="mt-4 p-4 rounded-lg alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                <div class="mt-4 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                    <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                     <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
                 </div>
             <?php endif; ?>
 
-            <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=login" method="POST">
+            <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=login" method="POST" data-validate="true">
                 <div class="space-y-4">
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700">

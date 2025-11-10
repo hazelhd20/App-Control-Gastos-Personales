@@ -21,16 +21,20 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
             </div>
 
             <?php if (!empty($errors)): ?>
-                <div class="mb-6 p-4 rounded-lg alert-danger">
-                    <ul class="list-disc list-inside text-sm">
-                        <?php foreach ($errors as $error): ?>
-                            <li><?php echo htmlspecialchars($error); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+                <div class="mb-6 alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm">
+                            <?php foreach ($errors as $error): ?>
+                                <li><?php echo htmlspecialchars($error); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                 </div>
             <?php endif; ?>
 
-            <form action="<?php echo BASE_URL; ?>public/index.php?action=initial-setup" method="POST" class="space-y-8">
+            <form action="<?php echo BASE_URL; ?>public/index.php?action=initial-setup" method="POST" class="space-y-8" data-validate="false" data-no-validate="true">
                 <!-- Income and Currency -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -68,22 +72,64 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
 
                 <!-- Payment Methods -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
                         <i class="fas fa-credit-card mr-2 text-blue-600"></i>Medios de Pago *
                     </label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                    <p class="text-xs text-gray-600 mb-4">Selecciona uno o más medios de pago que utilizas habitualmente</p>
+                    
+                    <!-- Payment Method Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="payment_methods_container">
+                        <label class="payment-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md relative <?php echo in_array('efectivo', $old_data['payment_methods'] ?? []) ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-green-300'; ?>">
                             <input type="checkbox" name="payment_methods[]" value="efectivo" 
                                    <?php echo in_array('efectivo', $old_data['payment_methods'] ?? []) ? 'checked' : ''; ?>
-                                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                            <span class="ml-3 text-gray-700 font-medium"><i class="fas fa-money-bill mr-2"></i>Efectivo</span>
+                                   class="payment-checkbox absolute opacity-0 cursor-pointer" style="top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+                            <div class="flex items-start relative pointer-events-none" style="z-index: 0;">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                        <i class="fas fa-money-bill-wave text-2xl text-green-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Efectivo</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Pagos en moneda física, billetes y monedas</p>
+                                </div>
+                                <div class="flex-shrink-0 ml-2">
+                                    <div class="payment-checkmark <?php echo in_array('efectivo', $old_data['payment_methods'] ?? []) ? '' : 'hidden'; ?> w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </label>
-                        <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                        
+                        <label class="payment-card cursor-pointer p-4 border-2 rounded-lg transition-all duration-300 hover:shadow-md relative <?php echo in_array('tarjeta', $old_data['payment_methods'] ?? []) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'; ?>">
                             <input type="checkbox" name="payment_methods[]" value="tarjeta" 
                                    <?php echo in_array('tarjeta', $old_data['payment_methods'] ?? []) ? 'checked' : ''; ?>
-                                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                            <span class="ml-3 text-gray-700 font-medium"><i class="fas fa-credit-card mr-2"></i>Tarjeta</span>
+                                   class="payment-checkbox absolute opacity-0 cursor-pointer" style="top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+                            <div class="flex items-start relative pointer-events-none" style="z-index: 0;">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="fas fa-credit-card text-2xl text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900">Tarjeta</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Tarjetas de débito, crédito o prepago</p>
+                                </div>
+                                <div class="flex-shrink-0 ml-2">
+                                    <div class="payment-checkmark <?php echo in_array('tarjeta', $old_data['payment_methods'] ?? []) ? '' : 'hidden'; ?> w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </label>
+                    </div>
+                    
+                    <!-- Validation message -->
+                    <div id="payment_methods_error" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                            <p class="text-sm text-red-800">Debes seleccionar al menos un medio de pago</p>
+                        </div>
                     </div>
                 </div>
 
@@ -365,6 +411,121 @@ function getMonthlyIncome() {
 
 function getCurrency() {
     return document.getElementById('currency').value || 'MXN';
+}
+
+function updatePaymentCardVisual(method, isChecked, skipValidation = false) {
+    const checkbox = document.querySelector(`.payment-checkbox[value="${method}"]`);
+    if (!checkbox) {
+        return;
+    }
+    
+    // Sync checkbox state - use actual checkbox state as source of truth
+    const actualChecked = checkbox.checked;
+    
+    const card = checkbox.closest('.payment-card');
+    if (!card) {
+        return;
+    }
+    
+    const checkmark = card.querySelector('.payment-checkmark');
+    
+    // Remove all possible border classes first
+    card.classList.remove('border-gray-300', 'border-red-300', 'border-green-500', 'border-blue-500');
+    card.classList.remove('bg-green-50', 'bg-blue-50');
+    
+    if (actualChecked) {
+        if (method === 'efectivo') {
+            card.classList.add('border-green-500', 'bg-green-50');
+        } else if (method === 'tarjeta') {
+            card.classList.add('border-blue-500', 'bg-blue-50');
+        }
+        if (checkmark) {
+            checkmark.classList.remove('hidden');
+        }
+        // Add pulse animation only if this is a user interaction (not initial load)
+        if (!skipValidation) {
+            card.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                card.style.transform = '';
+            }, 200);
+        }
+    } else {
+        // Card is not selected
+        card.classList.add('border-gray-300');
+        if (checkmark) {
+            checkmark.classList.add('hidden');
+        }
+    }
+    
+    if (!skipValidation) {
+        // Check if there are any selected methods after this update
+        const hasAnySelected = document.querySelectorAll('.payment-checkbox:checked').length > 0;
+        // Only show error if no methods are selected
+        validatePaymentMethods(!hasAnySelected);
+    }
+}
+
+function validatePaymentMethods(showError = false) {
+    const checkboxes = document.querySelectorAll('.payment-checkbox:checked');
+    const errorDiv = document.getElementById('payment_methods_error');
+    const hasSelection = checkboxes.length > 0;
+    
+    if (hasSelection) {
+        // Hide error message - methods are selected
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
+        }
+        // Remove error styling from all cards that are not selected
+        document.querySelectorAll('.payment-card').forEach(card => {
+            const checkbox = card.querySelector('.payment-checkbox');
+            // Remove error styling from unselected cards
+            if (!checkbox || !checkbox.checked) {
+                if (card.classList.contains('border-red-300')) {
+                    card.classList.remove('border-red-300');
+                    // Only add gray border if card doesn't have selection styling
+                    if (!card.classList.contains('border-green-500') && 
+                        !card.classList.contains('border-blue-500')) {
+                        card.classList.add('border-gray-300');
+                    }
+                }
+            }
+        });
+        return true;
+    } else {
+        // No methods selected
+        if (showError) {
+            // Show error message only if explicitly requested
+            if (errorDiv) {
+                errorDiv.classList.remove('hidden');
+            }
+            // Add error styling to all cards
+            document.querySelectorAll('.payment-card').forEach(card => {
+                // Only add error styling if card doesn't have selection styling
+                if (!card.classList.contains('border-green-500') && 
+                    !card.classList.contains('border-blue-500')) {
+                    card.classList.add('border-red-300');
+                    card.classList.remove('border-gray-300');
+                }
+            });
+        } else {
+            // Hide error message if not showing error
+            if (errorDiv) {
+                errorDiv.classList.add('hidden');
+            }
+            // Remove error styling but keep default styling
+            document.querySelectorAll('.payment-card').forEach(card => {
+                if (card.classList.contains('border-red-300')) {
+                    card.classList.remove('border-red-300');
+                    // Only add gray if no selection styling
+                    if (!card.classList.contains('border-green-500') && 
+                        !card.classList.contains('border-blue-500')) {
+                        card.classList.add('border-gray-300');
+                    }
+                }
+            });
+        }
+        return false;
+    }
 }
 
 function selectGoalCard(goalValue) {
@@ -914,22 +1075,68 @@ document.addEventListener('DOMContentLoaded', function() {
         validateOtherGoal();
     }, 300));
     
+    // Handle checkbox changes for payment methods
+    document.querySelectorAll('.payment-checkbox').forEach(checkbox => {
+        // Listen to change events (fires when checkbox state changes via label click or keyboard)
+        checkbox.addEventListener('change', function(e) {
+            e.stopPropagation();
+            updatePaymentCardVisual(this.value, this.checked);
+        });
+        
+        // Also handle input event for better compatibility
+        checkbox.addEventListener('input', function(e) {
+            e.stopPropagation();
+            updatePaymentCardVisual(this.value, this.checked);
+        });
+    });
+    
+    // Initialize payment methods visual states (after event listeners are set up)
+    document.querySelectorAll('.payment-checkbox').forEach(checkbox => {
+        updatePaymentCardVisual(checkbox.value, checkbox.checked, true);
+    });
+    
+    // Initialize payment methods validation (don't show error on initial load)
+    // Only validate silently to set up initial state
+    validatePaymentMethods(false);
+    
     // Form validation before submit
     document.querySelector('form').addEventListener('submit', function(e) {
         const goal = getSelectedGoal();
         let isValid = true;
+        let firstError = null;
         
+        // Validate goal selection
         if (!goal) {
             e.preventDefault();
             alert('Por favor selecciona un objetivo financiero');
+            firstError = document.querySelector('.goal-card');
             isValid = false;
         }
         
+        // Validate payment methods (always show error on submit if invalid)
+        const hasPaymentMethods = document.querySelectorAll('.payment-checkbox:checked').length > 0;
+        if (!hasPaymentMethods) {
+            e.preventDefault();
+            // Show error message
+            validatePaymentMethods(true);
+            if (!firstError) {
+                firstError = document.getElementById('payment_methods_container') || document.getElementById('payment_methods_error');
+            }
+            isValid = false;
+        } else {
+            // Hide error if valid
+            validatePaymentMethods(false);
+        }
+        
+        // Validate goal-specific fields
         if (goal === 'ahorrar') {
             const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
             if (savingsGoal <= 0) {
                 e.preventDefault();
                 alert('Por favor ingresa una meta de ahorro válida');
+                if (!firstError) {
+                    firstError = document.getElementById('savings_goal');
+                }
                 isValid = false;
             }
         } else if (goal === 'pagar_deudas') {
@@ -937,6 +1144,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (debtAmount <= 0) {
                 e.preventDefault();
                 alert('Por favor ingresa el monto de deuda');
+                if (!firstError) {
+                    firstError = document.getElementById('debt_amount');
+                }
                 isValid = false;
             }
         } else if (goal === 'otro') {
@@ -944,16 +1154,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (description.length < 10) {
                 e.preventDefault();
                 alert('Por favor describe tu objetivo (mínimo 10 caracteres)');
+                if (!firstError) {
+                    firstError = document.getElementById('goal_description');
+                }
                 isValid = false;
             }
         }
         
-        if (!isValid) {
+        if (!isValid && firstError) {
             // Scroll to first error
-            const firstError = document.querySelector('.border-red-500, .goal-card');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add shake animation to error element
+            firstError.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                firstError.style.animation = '';
+            }, 500);
         }
     });
     
@@ -993,6 +1209,73 @@ function debounce(func, wait) {
 
 .goal-card.border-blue-500 {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Payment Card Styles */
+.payment-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.payment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.payment-card:active {
+    transform: translateY(0);
+}
+
+.payment-card.border-green-500 {
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.payment-card.border-blue-500 {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.payment-card.border-red-300 {
+    border-color: #fca5a5 !important;
+    animation: pulse-red 1s;
+}
+
+.payment-checkmark {
+    animation: checkmark-pop 0.3s ease-out;
+}
+
+@keyframes checkmark-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        border-color: #fca5a5;
+    }
+    50% {
+        border-color: #ef4444;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
 }
 
 /* Goal Section Animations */
@@ -1042,18 +1325,38 @@ html {
     pointer-events: none;
 }
 
+/* Payment checkbox overlay - covers entire card for clicking */
+.payment-card {
+    position: relative;
+}
+
+.payment-card .payment-checkbox {
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
 /* Responsive improvements */
 @media (max-width: 640px) {
-    .goal-card {
+    .goal-card,
+    .payment-card {
         padding: 1rem;
     }
     
-    .goal-card h3 {
+    .goal-card h3,
+    .payment-card h3 {
         font-size: 1rem;
     }
     
-    .goal-card p {
+    .goal-card p,
+    .payment-card p {
         font-size: 0.75rem;
+    }
+    
+    .payment-checkmark {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 }
 </style>

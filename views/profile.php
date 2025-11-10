@@ -30,18 +30,23 @@ unset($_SESSION['password_errors']);
         </div>
 
         <?php if ($flash): ?>
-            <div class="mb-6 p-4 rounded-lg alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+            <div class="mb-6 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                 <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($errors)): ?>
-            <div class="mb-6 p-4 rounded-lg alert-danger">
-                <ul class="list-disc list-inside text-sm">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
+            <div class="mb-6 alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <div class="flex-1">
+                    <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -107,7 +112,7 @@ unset($_SESSION['password_errors']);
                         <i class="fas fa-edit mr-2 text-blue-600"></i>Editar Perfil
                     </h2>
 
-                    <form action="<?php echo BASE_URL; ?>public/index.php?action=update-profile" method="POST" class="space-y-5 sm:space-y-6">
+                    <form action="<?php echo BASE_URL; ?>public/index.php?action=update-profile" method="POST" class="space-y-5 sm:space-y-6" data-validate="true">
                         <!-- Personal Information -->
                         <div>
                             <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Información Personal</h3>
@@ -245,16 +250,20 @@ unset($_SESSION['password_errors']);
                     </h2>
 
                     <?php if (!empty($password_errors)): ?>
-                        <div class="mb-6 p-4 rounded-lg alert-danger">
-                            <ul class="list-disc list-inside text-sm">
-                                <?php foreach ($password_errors as $error): ?>
-                                    <li><?php echo htmlspecialchars($error); ?></li>
-                                <?php endforeach; ?>
-                            </ul>
+                        <div class="mb-6 alert-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div class="flex-1">
+                                <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <?php foreach ($password_errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
                         </div>
                     <?php endif; ?>
 
-                    <form action="<?php echo BASE_URL; ?>public/index.php?action=change-password" method="POST" class="space-y-3 sm:space-y-4">
+                    <form action="<?php echo BASE_URL; ?>public/index.php?action=change-password" method="POST" class="space-y-3 sm:space-y-4" data-validate="true" data-validate-on-input="true">
                         <div>
                             <label for="current_password" class="block text-sm font-medium text-gray-700">
                                 Contraseña Actual *
@@ -269,11 +278,13 @@ unset($_SESSION['password_errors']);
                         </div>
 
                         <div>
-                            <label for="new_password" class="block text-sm font-medium text-gray-700">
+                            <label for="new_password" class="block text-sm font-medium text-gray-700" data-label="Nueva Contraseña">
                                 Nueva Contraseña *
                             </label>
                             <div class="relative mt-1">
                                 <input id="new_password" name="new_password" type="password" required 
+                                       data-validate-password="true"
+                                       data-min-length="8"
                                        class="block w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                 <span class="absolute right-3 top-3 toggle-password cursor-pointer">
                                     <i class="fas fa-eye text-gray-400"></i>
@@ -285,11 +296,12 @@ unset($_SESSION['password_errors']);
                         </div>
 
                         <div>
-                            <label for="confirm_password" class="block text-sm font-medium text-gray-700">
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700" data-label="Confirmar Nueva Contraseña">
                                 Confirmar Nueva Contraseña *
                             </label>
                             <div class="relative mt-1">
                                 <input id="confirm_password" name="confirm_password" type="password" required 
+                                       data-confirm-password="new_password"
                                        class="block w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                 <span class="absolute right-3 top-3 toggle-password cursor-pointer">
                                     <i class="fas fa-eye text-gray-400"></i>

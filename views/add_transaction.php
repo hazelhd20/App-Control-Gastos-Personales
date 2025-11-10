@@ -28,12 +28,16 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
         </div>
 
         <?php if (!empty($errors)): ?>
-            <div class="mb-6 p-4 rounded-lg alert-danger">
-                <ul class="list-disc list-inside text-sm">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
+            <div class="mb-6 alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <div class="flex-1">
+                    <p class="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -67,7 +71,7 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                 </div>
             </div>
 
-            <form id="transactionForm" action="<?php echo BASE_URL; ?>public/index.php?action=add-transaction" method="POST" class="space-y-5 sm:space-y-6">
+            <form id="transactionForm" action="<?php echo BASE_URL; ?>public/index.php?action=add-transaction" method="POST" class="space-y-5 sm:space-y-6" data-validate="false" data-no-validate="true">
                 <input type="hidden" name="type" id="type_input" value="expense">
 
                 <!-- Amount -->
@@ -81,6 +85,7 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         </div>
                         <input id="amount" name="amount" type="number" step="0.01" min="0.01" required 
                                value="<?php echo htmlspecialchars($old_data['amount'] ?? ''); ?>"
+                               data-min="0.01"
                                class="block w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold transition-all"
                                placeholder="0.00">
                     </div>

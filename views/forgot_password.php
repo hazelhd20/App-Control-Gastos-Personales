@@ -21,7 +21,8 @@ unset($_SESSION['reset_link']);
             </div>
 
             <?php if ($flash): ?>
-                <div class="mt-6 p-4 rounded-lg alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                <div class="mt-6 alert-auto-hide <?php echo $flash['type'] === 'error' ? 'alert-danger' : 'alert-success'; ?>">
+                    <i class="fas <?php echo $flash['type'] === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'; ?>"></i>
                     <p class="text-sm"><?php echo htmlspecialchars($flash['message']); ?></p>
                 </div>
             <?php endif; ?>
@@ -44,7 +45,7 @@ unset($_SESSION['reset_link']);
                 </div>
             <?php endif; ?>
 
-            <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=forgot-password" method="POST">
+            <form class="mt-8 space-y-6" action="<?php echo BASE_URL; ?>public/index.php?action=forgot-password" method="POST" data-validate="true">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">
                         <i class="fas fa-envelope mr-2 text-blue-600"></i>Correo Electrónico
