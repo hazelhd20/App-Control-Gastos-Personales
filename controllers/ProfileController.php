@@ -43,6 +43,9 @@ class ProfileController {
             $savings_goal = floatval($_POST['savings_goal'] ?? 0);
             $savings_deadline = sanitize($_POST['savings_deadline'] ?? '');
             $debt_amount = floatval($_POST['debt_amount'] ?? 0);
+            $debt_deadline = sanitize($_POST['debt_deadline'] ?? '');
+            $monthly_payment = floatval($_POST['monthly_payment'] ?? 0);
+            $debt_count = intval($_POST['debt_count'] ?? 0);
             $spending_limit_type = $_POST['spending_limit_type'] ?? 'auto';
             $spending_limit = floatval($_POST['spending_limit'] ?? 0);
 
@@ -63,14 +66,16 @@ class ProfileController {
                 $errors[] = "Debe seleccionar un objetivo financiero";
             }
 
-            // Validate financial goal feasibility
+                // Validate financial goal feasibility
             if (!empty($financial_goal)) {
                 $goal_validation = $this->profile->validateGoalFeasibility(
                     $monthly_income,
                     $financial_goal,
                     $savings_goal,
                     $savings_deadline,
-                    $debt_amount
+                    $debt_amount,
+                    $debt_deadline,
+                    $monthly_payment
                 );
 
                 if (!$goal_validation['valid']) {
@@ -100,6 +105,13 @@ class ProfileController {
                     if ($debt_amount <= 0) {
                         $errors[] = "Debe ingresar el monto de la deuda mayor a 0";
                     }
+                    if (!empty($debt_deadline)) {
+                        $deadline_date = new DateTime($debt_deadline);
+                        $today = new DateTime();
+                        if ($deadline_date <= $today) {
+                            $errors[] = "La fecha objetivo para pagar deudas debe ser una fecha futura";
+                        }
+                    }
                 } elseif ($financial_goal === 'otro') {
                     if (empty(trim($goal_description))) {
                         $errors[] = "Debe describir su objetivo financiero cuando selecciona 'Otro'";
@@ -114,7 +126,9 @@ class ProfileController {
                     $financial_goal,
                     $savings_goal,
                     $debt_amount,
-                    $savings_deadline
+                    $savings_deadline,
+                    $debt_deadline,
+                    $monthly_payment
                 );
             } else {
                 // Validate manual spending limit
@@ -149,6 +163,9 @@ class ProfileController {
                 $this->profile->savings_goal = $savings_goal > 0 ? $savings_goal : null;
                 $this->profile->savings_deadline = !empty($savings_deadline) ? $savings_deadline : null;
                 $this->profile->debt_amount = $debt_amount > 0 ? $debt_amount : null;
+                $this->profile->debt_deadline = !empty($debt_deadline) ? $debt_deadline : null;
+                $this->profile->monthly_payment = $monthly_payment > 0 ? $monthly_payment : null;
+                $this->profile->debt_count = $debt_count > 0 ? $debt_count : null;
                 $this->profile->spending_limit = $spending_limit;
 
                 if ($this->profile->create()) {
@@ -216,6 +233,9 @@ class ProfileController {
             $savings_goal = floatval($_POST['savings_goal'] ?? 0);
             $savings_deadline = sanitize($_POST['savings_deadline'] ?? '');
             $debt_amount = floatval($_POST['debt_amount'] ?? 0);
+            $debt_deadline = sanitize($_POST['debt_deadline'] ?? '');
+            $monthly_payment = floatval($_POST['monthly_payment'] ?? 0);
+            $debt_count = intval($_POST['debt_count'] ?? 0);
             $spending_limit = floatval($_POST['spending_limit'] ?? 0);
 
             if ($monthly_income > 0 && $spending_limit > 0 && !empty($payment_methods)) {
@@ -228,6 +248,9 @@ class ProfileController {
                 $this->profile->savings_goal = $savings_goal > 0 ? $savings_goal : null;
                 $this->profile->savings_deadline = !empty($savings_deadline) ? $savings_deadline : null;
                 $this->profile->debt_amount = $debt_amount > 0 ? $debt_amount : null;
+                $this->profile->debt_deadline = !empty($debt_deadline) ? $debt_deadline : null;
+                $this->profile->monthly_payment = $monthly_payment > 0 ? $monthly_payment : null;
+                $this->profile->debt_count = $debt_count > 0 ? $debt_count : null;
                 $this->profile->spending_limit = $spending_limit;
 
                 $this->profile->update();

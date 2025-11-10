@@ -293,16 +293,63 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                             <p class="text-sm font-medium text-red-900">Configuración de Pago de Deudas</p>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="debt_amount" class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-hand-holding-usd mr-2 text-red-600"></i>Monto Total de Deuda *
-                        </label>
-                        <input id="debt_amount" name="debt_amount" type="number" step="0.01" min="0" 
-                               value="<?php echo htmlspecialchars($old_data['debt_amount'] ?? ''); ?>"
-                               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="50000.00"
-                               oninput="validateDebtGoal()">
-                        <p class="mt-1 text-xs text-gray-500">Ingresa el monto total de todas tus deudas</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div>
+                            <label for="debt_amount" class="block text-sm font-medium text-gray-700">
+                                <i class="fas fa-hand-holding-usd mr-2 text-red-600"></i>Monto Total de Deuda *
+                            </label>
+                            <input id="debt_amount" name="debt_amount" type="number" step="0.01" min="0" 
+                                   value="<?php echo htmlspecialchars($old_data['debt_amount'] ?? ''); ?>"
+                                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="50000.00"
+                                   oninput="validateDebtGoal(); calculateRecommendedMonthlyPayment();">
+                            <p class="mt-1 text-xs text-gray-500">Ingresa el monto total de todas tus deudas</p>
+                        </div>
+                        <div>
+                            <label for="debt_count" class="block text-sm font-medium text-gray-700">
+                                <i class="fas fa-list-ol mr-2 text-red-600"></i>Número de Deudas
+                            </label>
+                            <input id="debt_count" name="debt_count" type="number" step="1" min="1" 
+                                   value="<?php echo htmlspecialchars($old_data['debt_count'] ?? ''); ?>"
+                                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="3">
+                            <p class="mt-1 text-xs text-gray-500">Cantidad de deudas que tienes (opcional)</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div>
+                            <label for="debt_deadline" class="block text-sm font-medium text-gray-700">
+                                <i class="fas fa-calendar-check mr-2 text-red-600"></i>Fecha Objetivo para Pagar
+                            </label>
+                            <input id="debt_deadline" name="debt_deadline" type="date" 
+                                   value="<?php echo htmlspecialchars($old_data['debt_deadline'] ?? ''); ?>"
+                                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   min="<?php echo date('Y-m-d', strtotime('+1 month')); ?>"
+                                   onchange="validateDebtGoal(); calculateRecommendedMonthlyPayment();">
+                            <p class="mt-1 text-xs text-gray-500">
+                                <span id="debt_deadline_recommendation_text" class="hidden text-blue-600 font-medium">
+                                    <i class="fas fa-lightbulb mr-1"></i>Fecha recomendada establecida automáticamente
+                                </span>
+                                <span id="debt_deadline_manual_text">Fecha objetivo para pagar todas las deudas (opcional)</span>
+                            </p>
+                        </div>
+                        <div>
+                            <label for="monthly_payment" class="block text-sm font-medium text-gray-700">
+                                <i class="fas fa-calendar-alt mr-2 text-red-600"></i>Pago Mensual
+                            </label>
+                            <input id="monthly_payment" name="monthly_payment" type="number" step="0.01" min="0" 
+                                   value="<?php echo htmlspecialchars($old_data['monthly_payment'] ?? ''); ?>"
+                                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="2500.00"
+                                   oninput="validateDebtGoal(); calculateDebtDeadlineFromPayment();"
+                                   onfocus="markMonthlyPaymentAsManuallySet()">
+                            <p class="mt-1 text-xs text-gray-500">
+                                <span id="monthly_payment_recommendation_text" class="hidden text-blue-600 font-medium">
+                                    <i class="fas fa-lightbulb mr-1"></i>Pago mensual recomendado calculado automáticamente
+                                </span>
+                                <span id="monthly_payment_manual_text">Pago mensual que planeas realizar (opcional)</span>
+                            </p>
+                        </div>
                     </div>
                     <div id="debt_info" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
                         <div class="flex items-start">
@@ -606,10 +653,14 @@ function toggleGoalFields() {
                 debtFields.style.transform = 'translateY(0)';
                 // Make debt amount required
                 document.getElementById('debt_amount').required = true;
+                document.getElementById('debt_deadline').required = false;
+                document.getElementById('monthly_payment').required = false;
+                document.getElementById('debt_count').required = false;
                 document.getElementById('savings_goal').required = false;
                 document.getElementById('savings_deadline').required = false;
                 document.getElementById('goal_description').required = false;
                 validateDebtGoal();
+                calculateRecommendedMonthlyPayment();
             }, 50);
         } else if (goal === 'otro') {
             otherFields.classList.remove('hidden');
@@ -628,6 +679,9 @@ function toggleGoalFields() {
             document.getElementById('savings_goal').required = false;
             document.getElementById('savings_deadline').required = false;
             document.getElementById('debt_amount').required = false;
+            document.getElementById('debt_deadline').required = false;
+            document.getElementById('monthly_payment').required = false;
+            document.getElementById('debt_count').required = false;
             document.getElementById('goal_description').required = false;
         }
         
@@ -814,8 +868,151 @@ function validateSavingsGoal() {
     updateAutoLimit();
 }
 
+// Track if monthly payment was manually set by user
+let monthlyPaymentManuallySet = false;
+let hasInitialMonthlyPayment = false;
+
+// Initialize monthly payment tracking
+document.addEventListener('DOMContentLoaded', function() {
+    const initialMonthlyPayment = document.getElementById('monthly_payment').value;
+    if (initialMonthlyPayment) {
+        hasInitialMonthlyPayment = true;
+        monthlyPaymentManuallySet = true;
+    }
+});
+
+function markMonthlyPaymentAsManuallySet() {
+    monthlyPaymentManuallySet = true;
+    document.getElementById('monthly_payment_recommendation_text').classList.add('hidden');
+    document.getElementById('monthly_payment_manual_text').classList.remove('hidden');
+}
+
+function calculateRecommendedMonthlyPayment() {
+    // Only calculate if monthly payment hasn't been manually set
+    if (monthlyPaymentManuallySet && hasInitialMonthlyPayment) {
+        return;
+    }
+    
+    const financialGoal = getSelectedGoal();
+    if (financialGoal !== 'pagar_deudas') {
+        return;
+    }
+    
+    const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
+    const debtDeadline = document.getElementById('debt_deadline').value;
+    const monthlyIncome = getMonthlyIncome();
+    
+    if (debtAmount <= 0 || monthlyIncome <= 0) {
+        return;
+    }
+    
+    // Only auto-set if user hasn't manually set a monthly payment
+    if (monthlyPaymentManuallySet && !hasInitialMonthlyPayment) {
+        return;
+    }
+    
+    let recommendedPayment = 0;
+    
+    if (debtDeadline) {
+        // Calculate based on deadline
+        const deadline = new Date(debtDeadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (deadline > today) {
+            const diffTime = deadline - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const months = Math.max(1, Math.ceil(diffDays / 30));
+            
+            recommendedPayment = debtAmount / months;
+            // Ensure payment doesn't exceed 50% of income
+            recommendedPayment = Math.min(recommendedPayment, monthlyIncome * 0.50);
+        }
+    } else {
+        // Default: recommend 30% of income or enough to pay in 24 months, whichever is higher
+        const minMonthlyPayment = debtAmount / 24;
+        recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
+        recommendedPayment = Math.min(recommendedPayment, monthlyIncome * 0.50);
+    }
+    
+    // Set the monthly payment field
+    const monthlyPaymentField = document.getElementById('monthly_payment');
+    const currentValue = monthlyPaymentField.value;
+    
+    // Only set if field is empty or if it wasn't manually set by user
+    if (!currentValue || (!monthlyPaymentManuallySet && !hasInitialMonthlyPayment)) {
+        monthlyPaymentField.value = recommendedPayment.toFixed(2);
+        
+        // Show recommendation message only if we just set it (was empty)
+        if (!currentValue && recommendedPayment > 0) {
+            const recommendationText = document.getElementById('monthly_payment_recommendation_text');
+            const manualText = document.getElementById('monthly_payment_manual_text');
+            
+            if (recommendationText && manualText) {
+                recommendationText.classList.remove('hidden');
+                manualText.classList.add('hidden');
+                
+                // Hide recommendation message after 5 seconds
+                setTimeout(() => {
+                    if (!monthlyPaymentManuallySet) {
+                        recommendationText.classList.add('hidden');
+                        manualText.classList.remove('hidden');
+                    }
+                }, 5000);
+            }
+        }
+    }
+}
+
+function calculateDebtDeadlineFromPayment() {
+    // Only calculate if debt deadline hasn't been manually set
+    const debtDeadlineField = document.getElementById('debt_deadline');
+    if (debtDeadlineField.value) {
+        return; // User has set a deadline, don't override
+    }
+    
+    const financialGoal = getSelectedGoal();
+    if (financialGoal !== 'pagar_deudas') {
+        return;
+    }
+    
+    const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
+    const monthlyPayment = parseFloat(document.getElementById('monthly_payment').value) || 0;
+    
+    if (debtAmount <= 0 || monthlyPayment <= 0) {
+        return;
+    }
+    
+    // Calculate months needed to pay debt
+    const monthsNeeded = Math.ceil(debtAmount / monthlyPayment);
+    
+    // Set reasonable bounds (minimum 6 months, maximum 120 months / 10 years)
+    const minMonths = 6;
+    const maxMonths = 120;
+    const finalMonths = Math.max(minMonths, Math.min(maxMonths, monthsNeeded));
+    
+    // Calculate recommended date
+    const today = new Date();
+    const recommendedDate = new Date(today);
+    recommendedDate.setMonth(recommendedDate.getMonth() + finalMonths);
+    
+    // Format date as YYYY-MM-DD
+    const year = recommendedDate.getFullYear();
+    const month = String(recommendedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(recommendedDate.getDate()).padStart(2, '0');
+    const recommendedDateString = `${year}-${month}-${day}`;
+    
+    // Only set if field is empty
+    if (!debtDeadlineField.value) {
+        debtDeadlineField.value = recommendedDateString;
+    }
+}
+
 function validateDebtGoal() {
     const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
+    const debtDeadline = document.getElementById('debt_deadline').value;
+    const monthlyPayment = parseFloat(document.getElementById('monthly_payment').value) || 0;
+    const debtCount = parseInt(document.getElementById('debt_count').value) || 0;
     const monthlyIncome = getMonthlyIncome();
     const currency = getCurrency();
     
@@ -843,26 +1040,98 @@ function validateDebtGoal() {
     
     info.push(`Ratio deuda/ingreso anual: ${(debtRatio * 100).toFixed(1)}%`);
     
+    if (debtCount > 0) {
+        const avgDebtPerLoan = debtAmount / debtCount;
+        info.push(`Número de deudas: ${debtCount}`);
+        info.push(`Deuda promedio por préstamo: ${formatCurrency(avgDebtPerLoan, currency)}`);
+    }
+    
     if (debtRatio > 5) {
         warningMessage = 'Tu deuda es muy alta comparada con tu ingreso anual. Considera buscar asesoría financiera profesional.';
         hasWarning = true;
     }
     
-    // Calculate minimum payment for 24 months
-    const minMonthlyPayment = debtAmount / 24;
-    const paymentPercentage = (minMonthlyPayment / monthlyIncome) * 100;
-    
-    info.push(`Pago mensual mínimo (24 meses): ${formatCurrency(minMonthlyPayment, currency)}`);
-    info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
-    
-    if (minMonthlyPayment > monthlyIncome * 0.50) {
-        warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
-            `Para pagar tu deuda en 24 meses, necesitarías pagar ${formatCurrency(minMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Esto puede ser difícil de mantener.`;
-        hasWarning = true;
-    } else if (minMonthlyPayment > monthlyIncome * 0.30) {
-        warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
-            `Necesitarás pagar ${formatCurrency(minMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Asegúrate de que esto sea sostenible.`;
-        hasWarning = true;
+    // If deadline is provided, calculate required monthly payment
+    if (debtDeadline) {
+        const deadline = new Date(debtDeadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (deadline <= today) {
+            warningMessage = 'La fecha objetivo debe ser una fecha futura';
+            hasWarning = true;
+        } else {
+            const diffTime = deadline - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const months = Math.max(1, Math.ceil(diffDays / 30));
+            
+            const requiredMonthlyPayment = debtAmount / months;
+            const paymentPercentage = (requiredMonthlyPayment / monthlyIncome) * 100;
+            
+            info.push(`Fecha objetivo: ${new Date(debtDeadline).toLocaleDateString('es-MX')}`);
+            info.push(`Tiempo disponible: ${months} mes${months > 1 ? 'es' : ''}`);
+            info.push(`Pago mensual necesario: ${formatCurrency(requiredMonthlyPayment, currency)}`);
+            info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
+            
+            if (requiredMonthlyPayment > monthlyIncome * 0.50) {
+                warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                    `Para pagar tu deuda en ${months} meses, necesitarías pagar ${formatCurrency(requiredMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Esto puede ser difícil de mantener.`;
+                hasWarning = true;
+            } else if (requiredMonthlyPayment > monthlyIncome * 0.30) {
+                warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                    `Necesitarás pagar ${formatCurrency(requiredMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Asegúrate de que esto sea sostenible.`;
+                hasWarning = true;
+            }
+            
+            // Compare with user's monthly payment if provided
+            if (monthlyPayment > 0) {
+                const monthsToPay = Math.ceil(debtAmount / monthlyPayment);
+                if (monthsToPay > months) {
+                    warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                        `Con un pago mensual de ${formatCurrency(monthlyPayment, currency)}, tardarías ${monthsToPay} meses en pagar, que es más que tu fecha objetivo (${months} meses). Considera aumentar el pago mensual.`;
+                    hasWarning = true;
+                } else if (monthsToPay <= months) {
+                    info.push(`Con tu pago mensual de ${formatCurrency(monthlyPayment, currency)}, pagarás la deuda en aproximadamente ${monthsToPay} mes${monthsToPay > 1 ? 'es' : ''}`);
+                }
+            }
+        }
+    } else if (monthlyPayment > 0) {
+        // User specified monthly payment but no deadline
+        const monthsToPay = Math.ceil(debtAmount / monthlyPayment);
+        const paymentPercentage = (monthlyPayment / monthlyIncome) * 100;
+        
+        info.push(`Pago mensual: ${formatCurrency(monthlyPayment, currency)}`);
+        info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
+        info.push(`Tiempo estimado para pagar: ${monthsToPay} mes${monthsToPay > 1 ? 'es' : ''} (${(monthsToPay / 12).toFixed(1)} años)`);
+        
+        if (monthlyPayment > monthlyIncome * 0.50) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `El pago mensual de ${formatCurrency(monthlyPayment, currency)} representa ${paymentPercentage.toFixed(1)}% de tu ingreso. Asegúrate de que esto sea sostenible.`;
+            hasWarning = true;
+        }
+        
+        if (monthsToPay > 120) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `Con este pago mensual, tardarías aproximadamente ${monthsToPay} meses (${(monthsToPay / 12).toFixed(1)} años) en pagar tu deuda. Considera aumentar el pago mensual.`;
+            hasWarning = true;
+        }
+    } else {
+        // No deadline or monthly payment - show default calculations
+        const minMonthlyPayment = debtAmount / 24;
+        const paymentPercentage = (minMonthlyPayment / monthlyIncome) * 100;
+        
+        info.push(`Pago mensual mínimo (24 meses): ${formatCurrency(minMonthlyPayment, currency)}`);
+        info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
+        
+        if (minMonthlyPayment > monthlyIncome * 0.50) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `Para pagar tu deuda en 24 meses, necesitarías pagar ${formatCurrency(minMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Esto puede ser difícil de mantener.`;
+            hasWarning = true;
+        } else if (minMonthlyPayment > monthlyIncome * 0.30) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `Necesitarás pagar ${formatCurrency(minMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Asegúrate de que esto sea sostenible.`;
+            hasWarning = true;
+        }
     }
     
     if (info.length > 0) {
@@ -1038,13 +1307,50 @@ function updateAutoLimit() {
         }
     } else if (financialGoal === 'pagar_deudas') {
         if (debtAmount > 0) {
-            const minMonthlyPayment = debtAmount / 24;
-            const recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
-            paymentAmount = Math.min(recommendedPayment, monthlyIncome * 0.50);
-            limit = monthlyIncome - paymentAmount;
+            const monthlyPayment = parseFloat(document.getElementById('monthly_payment').value) || 0;
+            const debtDeadline = document.getElementById('debt_deadline').value;
             
-            const paymentMonths = Math.ceil(debtAmount / paymentAmount);
-            details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en aproximadamente ${paymentMonths} meses`;
+            // If user specified monthly payment, use it
+            if (monthlyPayment > 0) {
+                paymentAmount = Math.min(monthlyPayment, monthlyIncome * 0.50);
+                limit = monthlyIncome - paymentAmount;
+                const paymentMonths = Math.ceil(debtAmount / paymentAmount);
+                details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en aproximadamente ${paymentMonths} meses`;
+            } else if (debtDeadline) {
+                // If deadline is provided, calculate required monthly payment
+                const deadline = new Date(debtDeadline);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (deadline > today) {
+                    const diffTime = deadline - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const months = Math.max(1, Math.ceil(diffDays / 30));
+                    
+                    const requiredMonthlyPayment = debtAmount / months;
+                    const maxPayment = monthlyIncome * 0.50;
+                    paymentAmount = Math.min(requiredMonthlyPayment, maxPayment);
+                    limit = monthlyIncome - paymentAmount;
+                    details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en ${months} meses (fecha objetivo)`;
+                } else {
+                    // Invalid deadline, use default
+                    const minMonthlyPayment = debtAmount / 24;
+                    const recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
+                    paymentAmount = Math.min(recommendedPayment, monthlyIncome * 0.50);
+                    limit = monthlyIncome - paymentAmount;
+                    const paymentMonths = Math.ceil(debtAmount / paymentAmount);
+                    details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en aproximadamente ${paymentMonths} meses`;
+                }
+            } else {
+                // Default: recommend paying 30% towards debt, but at least enough to pay in 24 months
+                const minMonthlyPayment = debtAmount / 24;
+                const recommendedPayment = Math.max(monthlyIncome * 0.30, minMonthlyPayment);
+                paymentAmount = Math.min(recommendedPayment, monthlyIncome * 0.50);
+                limit = monthlyIncome - paymentAmount;
+                
+                const paymentMonths = Math.ceil(debtAmount / paymentAmount);
+                details = `Basado en pago mensual de ${formatCurrency(paymentAmount, currency)} para pagar la deuda en aproximadamente ${paymentMonths} meses`;
+            }
         } else {
             // No debt amount set yet
             const recommendedPayment = monthlyIncome * 0.30;
@@ -1201,7 +1507,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update when debt amount changes
     document.getElementById('debt_amount').addEventListener('input', debounce(function() {
         validateDebtGoal();
+        calculateRecommendedMonthlyPayment();
         updateAutoLimit();
+    }, 300));
+    
+    // Update when debt deadline changes
+    document.getElementById('debt_deadline').addEventListener('change', function() {
+        validateDebtGoal();
+        calculateRecommendedMonthlyPayment();
+        updateAutoLimit();
+    });
+    
+    // Update when monthly payment changes
+    document.getElementById('monthly_payment').addEventListener('input', debounce(function() {
+        validateDebtGoal();
+        calculateDebtDeadlineFromPayment();
+        updateAutoLimit();
+    }, 300));
+    
+    // Update when debt count changes
+    document.getElementById('debt_count').addEventListener('input', debounce(function() {
+        validateDebtGoal();
     }, 300));
     
     // Update when goal description changes
@@ -1282,6 +1608,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     firstError = document.getElementById('debt_amount');
                 }
                 isValid = false;
+            }
+            
+            // Validate debt deadline if provided
+            const debtDeadline = document.getElementById('debt_deadline').value;
+            if (debtDeadline) {
+                const deadline = new Date(debtDeadline);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (deadline <= today) {
+                    e.preventDefault();
+                    alert('La fecha objetivo para pagar deudas debe ser una fecha futura');
+                    if (!firstError) {
+                        firstError = document.getElementById('debt_deadline');
+                    }
+                    isValid = false;
+                }
             }
         } else if (goal === 'otro') {
             const description = document.getElementById('goal_description').value.trim();

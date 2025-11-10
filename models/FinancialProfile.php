@@ -18,6 +18,9 @@ class FinancialProfile {
     public $savings_goal;
     public $savings_deadline;
     public $debt_amount;
+    public $debt_deadline;
+    public $monthly_payment;
+    public $debt_count;
     public $spending_limit;
     public $is_initial_setup_complete;
 
@@ -40,6 +43,9 @@ class FinancialProfile {
                       savings_goal = :savings_goal,
                       savings_deadline = :savings_deadline,
                       debt_amount = :debt_amount,
+                      debt_deadline = :debt_deadline,
+                      monthly_payment = :monthly_payment,
+                      debt_count = :debt_count,
                       spending_limit = :spending_limit,
                       is_initial_setup_complete = 1";
 
@@ -55,6 +61,9 @@ class FinancialProfile {
         $stmt->bindParam(':savings_goal', $this->savings_goal);
         $stmt->bindParam(':savings_deadline', $this->savings_deadline);
         $stmt->bindParam(':debt_amount', $this->debt_amount);
+        $stmt->bindParam(':debt_deadline', $this->debt_deadline);
+        $stmt->bindParam(':monthly_payment', $this->monthly_payment);
+        $stmt->bindParam(':debt_count', $this->debt_count);
         $stmt->bindParam(':spending_limit', $this->spending_limit);
 
         if ($stmt->execute()) {
@@ -114,6 +123,9 @@ class FinancialProfile {
                       savings_goal = :savings_goal,
                       savings_deadline = :savings_deadline,
                       debt_amount = :debt_amount,
+                      debt_deadline = :debt_deadline,
+                      monthly_payment = :monthly_payment,
+                      debt_count = :debt_count,
                       spending_limit = :spending_limit
                   WHERE user_id = :user_id";
 
@@ -127,6 +139,9 @@ class FinancialProfile {
         $stmt->bindParam(':savings_goal', $this->savings_goal);
         $stmt->bindParam(':savings_deadline', $this->savings_deadline);
         $stmt->bindParam(':debt_amount', $this->debt_amount);
+        $stmt->bindParam(':debt_deadline', $this->debt_deadline);
+        $stmt->bindParam(':monthly_payment', $this->monthly_payment);
+        $stmt->bindParam(':debt_count', $this->debt_count);
         $stmt->bindParam(':spending_limit', $this->spending_limit);
         $stmt->bindParam(':user_id', $this->user_id);
 
@@ -151,7 +166,7 @@ class FinancialProfile {
     /**
      * Calculate recommended spending limit based on goal
      */
-    public function calculateSpendingLimit($monthly_income, $financial_goal, $savings_goal = 0, $debt_amount = 0, $savings_deadline = null) {
+    public function calculateSpendingLimit($monthly_income, $financial_goal, $savings_goal = 0, $debt_amount = 0, $savings_deadline = null, $debt_deadline = null, $monthly_payment = null) {
         $limit = $monthly_income;
 
         if ($financial_goal === 'ahorrar' && $savings_goal > 0) {
@@ -175,12 +190,32 @@ class FinancialProfile {
                 $limit = $monthly_income - $recommended_savings;
             }
         } elseif ($financial_goal === 'pagar_deudas' && $debt_amount > 0) {
-            // Recommend paying 30% towards debt, but at least enough to pay in 24 months
-            $min_monthly_payment = $debt_amount / 24;
-            $recommended_payment = max($monthly_income * 0.30, $min_monthly_payment);
-            // Ensure payment doesn't exceed 50% of income
-            $recommended_payment = min($recommended_payment, $monthly_income * 0.50);
-            $limit = $monthly_income - $recommended_payment;
+            // If user specified monthly payment, use it
+            if (!empty($monthly_payment) && $monthly_payment > 0) {
+                $recommended_payment = min($monthly_payment, $monthly_income * 0.50);
+                $limit = $monthly_income - $recommended_payment;
+            } elseif (!empty($debt_deadline)) {
+                // If deadline is provided, calculate required monthly payment
+                $deadline = new DateTime($debt_deadline);
+                $today = new DateTime();
+                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                
+                // Calculate required monthly payment
+                $required_monthly_payment = $debt_amount / $months;
+                
+                // Ensure payment doesn't exceed 50% of income
+                $max_payment = $monthly_income * 0.50;
+                $recommended_payment = min($required_monthly_payment, $max_payment);
+                
+                $limit = $monthly_income - $recommended_payment;
+            } else {
+                // Default: recommend paying 30% towards debt, but at least enough to pay in 24 months
+                $min_monthly_payment = $debt_amount / 24;
+                $recommended_payment = max($monthly_income * 0.30, $min_monthly_payment);
+                // Ensure payment doesn't exceed 50% of income
+                $recommended_payment = min($recommended_payment, $monthly_income * 0.50);
+                $limit = $monthly_income - $recommended_payment;
+            }
         } else {
             // For general control, recommend 80% spending limit
             $limit = $monthly_income * 0.80;
@@ -197,7 +232,7 @@ class FinancialProfile {
      * Validate financial goal feasibility
      * Returns array with 'valid' boolean and 'message' string
      */
-    public function validateGoalFeasibility($monthly_income, $financial_goal, $savings_goal = 0, $savings_deadline = null, $debt_amount = 0) {
+    public function validateGoalFeasibility($monthly_income, $financial_goal, $savings_goal = 0, $savings_deadline = null, $debt_amount = 0, $debt_deadline = null, $monthly_payment = null) {
         $result = ['valid' => true, 'message' => '', 'warnings' => []];
 
         if ($financial_goal === 'ahorrar') {
@@ -246,6 +281,64 @@ class FinancialProfile {
                 return $result;
             }
 
+            // Validate debt deadline if provided
+            if (!empty($debt_deadline)) {
+                $deadline = new DateTime($debt_deadline);
+                $today = new DateTime();
+                
+                if ($deadline <= $today) {
+                    $result['valid'] = false;
+                    $result['message'] = 'La fecha objetivo para pagar deudas debe ser una fecha futura';
+                    return $result;
+                }
+
+                // Calculate months until deadline
+                $months = max(1, (int)$today->diff($deadline)->format('%m') + ($today->diff($deadline)->format('%y') * 12));
+                
+                // Calculate required monthly payment
+                $required_monthly_payment = $debt_amount / $months;
+                
+                // Check if it's feasible
+                if ($required_monthly_payment > $monthly_income * 0.50) {
+                    $result['warnings'][] = sprintf(
+                        'Para pagar tu deuda de %s en %d meses, necesitarías pagar %s mensualmente (%.1f%% de tu ingreso). Esto puede ser difícil de mantener.',
+                        number_format($debt_amount, 2),
+                        $months,
+                        number_format($required_monthly_payment, 2),
+                        ($required_monthly_payment / $monthly_income) * 100
+                    );
+                }
+
+                // Check if deadline is too far (more than 10 years)
+                if ($months > 120) {
+                    $result['warnings'][] = 'La fecha objetivo es muy lejana. Considera establecer una fecha más cercana para reducir intereses.';
+                }
+            }
+
+            // Validate monthly payment if provided
+            if (!empty($monthly_payment) && $monthly_payment > 0) {
+                if ($monthly_payment > $monthly_income * 0.50) {
+                    $result['warnings'][] = sprintf(
+                        'El pago mensual de %s representa %.1f%% de tu ingreso. Asegúrate de que esto sea sostenible.',
+                        number_format($monthly_payment, 2),
+                        ($monthly_payment / $monthly_income) * 100
+                    );
+                }
+
+                // Check if monthly payment is sufficient to pay debt in reasonable time
+                if ($monthly_payment > 0) {
+                    $months_to_pay = ceil($debt_amount / $monthly_payment);
+                    if ($months_to_pay > 120) {
+                        $result['warnings'][] = sprintf(
+                            'Con un pago mensual de %s, tardarías aproximadamente %d meses (%.1f años) en pagar tu deuda. Considera aumentar el pago mensual.',
+                            number_format($monthly_payment, 2),
+                            $months_to_pay,
+                            $months_to_pay / 12
+                        );
+                    }
+                }
+            }
+
             // Check if debt is reasonable compared to income
             $debt_to_income_ratio = $debt_amount / ($monthly_income * 12); // Annual income
             
@@ -253,14 +346,16 @@ class FinancialProfile {
                 $result['warnings'][] = 'Tu deuda es muy alta comparada con tu ingreso anual. Considera buscar asesoría financiera profesional.';
             }
 
-            // Calculate minimum payment to pay in 24 months
-            $min_monthly_payment = $debt_amount / 24;
-            if ($min_monthly_payment > $monthly_income * 0.50) {
-                $result['warnings'][] = sprintf(
-                    'Para pagar tu deuda en 24 meses, necesitarías pagar %s mensualmente (%.1f%% de tu ingreso). Esto puede ser difícil de mantener.',
-                    number_format($min_monthly_payment, 2),
-                    ($min_monthly_payment / $monthly_income) * 100
-                );
+            // Calculate minimum payment to pay in 24 months (if no deadline or payment specified)
+            if (empty($debt_deadline) && empty($monthly_payment)) {
+                $min_monthly_payment = $debt_amount / 24;
+                if ($min_monthly_payment > $monthly_income * 0.50) {
+                    $result['warnings'][] = sprintf(
+                        'Para pagar tu deuda en 24 meses, necesitarías pagar %s mensualmente (%.1f%% de tu ingreso). Esto puede ser difícil de mantener.',
+                        number_format($min_monthly_payment, 2),
+                        ($min_monthly_payment / $monthly_income) * 100
+                    );
+                }
             }
         } elseif ($financial_goal === 'otro') {
             // Validation for "otro" will be done in controller (description required)

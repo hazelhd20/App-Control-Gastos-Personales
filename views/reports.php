@@ -245,12 +245,17 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
                 <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                     <i class="fas fa-hand-holding-usd mr-2 text-blue-600"></i>Progreso de Pago de Deudas
                 </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
                     <div class="text-center">
                         <p class="text-xs sm:text-sm text-gray-600 mb-2">Deuda Total</p>
                         <p class="text-2xl sm:text-3xl font-bold text-red-600">
                             <?php echo formatCurrency($profile['debt_amount'], $profile['currency']); ?>
                         </p>
+                        <?php if (isset($profile['debt_count']) && $profile['debt_count'] > 0): ?>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <?php echo $profile['debt_count']; ?> deuda<?php echo $profile['debt_count'] > 1 ? 's' : ''; ?>
+                            </p>
+                        <?php endif; ?>
                     </div>
                     <div class="text-center">
                         <p class="text-xs sm:text-sm text-gray-600 mb-2">Ahorro para Pago</p>
@@ -267,10 +272,54 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
                             ?>
                         </p>
                     </div>
+                    <?php if (isset($profile['monthly_payment']) && $profile['monthly_payment'] > 0): ?>
+                        <div class="text-center">
+                            <p class="text-xs sm:text-sm text-gray-600 mb-2">Pago Mensual</p>
+                            <p class="text-2xl sm:text-3xl font-bold text-purple-600">
+                                <?php echo formatCurrency($profile['monthly_payment'], $profile['currency']); ?>
+                            </p>
+                            <?php 
+                            $months_to_pay = $profile['debt_amount'] > 0 && $profile['monthly_payment'] > 0 
+                                ? ceil($profile['debt_amount'] / $profile['monthly_payment']) 
+                                : 0;
+                            if ($months_to_pay > 0): 
+                            ?>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    ~<?php echo $months_to_pay; ?> mes<?php echo $months_to_pay > 1 ? 'es' : ''; ?> para pagar
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
+                <?php if (isset($profile['debt_deadline']) && $profile['debt_deadline']): ?>
+                    <div class="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-check text-blue-600 mr-2"></i>
+                            <div>
+                                <p class="text-sm font-medium text-blue-900">Fecha Objetivo</p>
+                                <p class="text-xs text-blue-700">
+                                    <?php echo date('d/m/Y', strtotime($profile['debt_deadline'])); ?>
+                                    <?php
+                                    $deadline = new DateTime($profile['debt_deadline']);
+                                    $today = new DateTime();
+                                    $diff = $today->diff($deadline);
+                                    if ($deadline > $today) {
+                                        $months_remaining = $diff->y * 12 + $diff->m;
+                                        echo " (en " . $months_remaining . " mes" . ($months_remaining > 1 ? 'es' : '') . ")";
+                                    } elseif ($deadline < $today) {
+                                        echo " (vencida)";
+                                    } else {
+                                        echo " (hoy)";
+                                    }
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <div class="mt-6 w-full bg-gray-200 rounded-full h-4">
                     <div class="bg-gradient-to-r from-red-500 to-green-500 h-4 rounded-full transition-all duration-500" 
-                         style="width: <?php echo min(100, round($debt_progress)); ?>%"></div>
+                         style="width: <?php echo min(100, max(0, round($debt_progress))); ?>%"></div>
                 </div>
             </div>
         <?php endif; ?>

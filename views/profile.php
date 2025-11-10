@@ -90,6 +90,21 @@ unset($_SESSION['password_errors']);
                             <p class="text-sm text-gray-600">
                                 Deuda: <?php echo formatCurrency($profile['debt_amount'], $profile['currency']); ?>
                             </p>
+                            <?php if (isset($profile['debt_count']) && $profile['debt_count'] > 0): ?>
+                                <p class="text-xs text-gray-500">
+                                    Número de deudas: <?php echo $profile['debt_count']; ?>
+                                </p>
+                            <?php endif; ?>
+                            <?php if (isset($profile['monthly_payment']) && $profile['monthly_payment'] > 0): ?>
+                                <p class="text-xs text-gray-500">
+                                    Pago mensual: <?php echo formatCurrency($profile['monthly_payment'], $profile['currency']); ?>
+                                </p>
+                            <?php endif; ?>
+                            <?php if (isset($profile['debt_deadline']) && $profile['debt_deadline']): ?>
+                                <p class="text-xs text-gray-500">
+                                    Fecha objetivo: <?php echo date('d/m/Y', strtotime($profile['debt_deadline'])); ?>
+                                </p>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -211,6 +226,40 @@ unset($_SESSION['password_errors']);
                                            value="<?php echo htmlspecialchars($profile['savings_deadline'] ?? ''); ?>"
                                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                 </div>
+                                <?php if ($profile['financial_goal'] === 'pagar_deudas'): ?>
+                                    <div>
+                                        <label for="debt_amount" class="block text-sm font-medium text-gray-700">
+                                            Monto Total de Deuda
+                                        </label>
+                                        <input id="debt_amount" name="debt_amount" type="number" step="0.01" 
+                                               value="<?php echo htmlspecialchars($profile['debt_amount'] ?? ''); ?>"
+                                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="debt_count" class="block text-sm font-medium text-gray-700">
+                                            Número de Deudas
+                                        </label>
+                                        <input id="debt_count" name="debt_count" type="number" step="1" min="1" 
+                                               value="<?php echo htmlspecialchars($profile['debt_count'] ?? ''); ?>"
+                                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="debt_deadline" class="block text-sm font-medium text-gray-700">
+                                            Fecha Objetivo para Pagar
+                                        </label>
+                                        <input id="debt_deadline" name="debt_deadline" type="date" 
+                                               value="<?php echo htmlspecialchars($profile['debt_deadline'] ?? ''); ?>"
+                                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="monthly_payment" class="block text-sm font-medium text-gray-700">
+                                            Pago Mensual
+                                        </label>
+                                        <input id="monthly_payment" name="monthly_payment" type="number" step="0.01" 
+                                               value="<?php echo htmlspecialchars($profile['monthly_payment'] ?? ''); ?>"
+                                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <div class="mt-4">
