@@ -13,46 +13,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Alert Auto-hide and Sound
+ * Alert Auto-hide
  */
 function initializeAlerts() {
     // Auto-hide flash messages
-    const autoHideAlerts = document.querySelectorAll('.alert-auto-hide');
+    const autoHideAlerts = document.querySelectorAll('.alert-auto-hide:not([data-initialized])');
     autoHideAlerts.forEach(alert => {
-        // Play sound for error alerts
-        if (alert.classList.contains('alert-danger')) {
-            playAlertSound();
-        }
+        // Mark as initialized to prevent multiple initializations
+        alert.setAttribute('data-initialized', 'true');
         
         // Auto-hide after 5 seconds
         setTimeout(() => {
             alert.style.transition = 'opacity 0.5s ease';
             alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 500);
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 500);
         }, 5000);
     });
-}
-
-/**
- * Play alert sound
- */
-function playAlertSound() {
-    // Create and play a simple beep sound
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
 }
 
 /**
@@ -60,12 +40,8 @@ function playAlertSound() {
  * Uses FormValidator class from form-validation.js
  */
 function initializeFormValidation() {
-    // Initialize form validators for forms with data-validate attribute
-    if (typeof initializeFormValidators === 'function') {
-        initializeFormValidators();
-    }
-    
     // Legacy support: Add data-validate to forms that should be validated
+    let needsReinit = false;
     document.querySelectorAll('form').forEach(form => {
         // Skip if already has validator
         if (form.hasAttribute('data-validator')) {
@@ -74,14 +50,15 @@ function initializeFormValidation() {
         
         // Add basic validation to forms with required fields
         const hasRequiredFields = form.querySelectorAll('input[required], select[required], textarea[required]').length > 0;
-        if (hasRequiredFields && !form.hasAttribute('data-no-validate')) {
+        if (hasRequiredFields && !form.hasAttribute('data-no-validate') && !form.hasAttribute('data-validate')) {
             form.setAttribute('data-validate', 'true');
             form.setAttribute('data-validate-on-input', 'true');
             form.setAttribute('data-validate-on-blur', 'true');
+            needsReinit = true;
         }
     });
     
-    // Re-initialize validators after adding attributes
+    // Initialize form validators (only once, after all attributes are set)
     if (typeof initializeFormValidators === 'function') {
         initializeFormValidators();
     }

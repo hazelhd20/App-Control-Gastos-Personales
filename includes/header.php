@@ -216,7 +216,7 @@
         
         /* Auto-hide alert animation */
         .alert-auto-hide {
-            animation: slideInDown 0.3s ease, fadeOut 0.5s ease 4.5s;
+            animation: slideInDown 0.3s ease;
         }
         
         @keyframes slideInDown {
@@ -227,12 +227,6 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
-        }
-        
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
             }
         }
         

@@ -291,7 +291,6 @@ class FormValidator {
         warningElement.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i>${message}`;
         
         // Find the best place to insert the warning message
-        const fieldContainer = field.closest('.relative, .mt-1, .form-group');
         if (fieldContainer && fieldContainer !== field.parentNode) {
             fieldContainer.parentNode.insertBefore(warningElement, fieldContainer.nextSibling);
         } else {
