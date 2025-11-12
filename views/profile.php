@@ -304,7 +304,7 @@ unset($_SESSION['password_errors']);
                                     </label>
                                     <select id="financial_goal" name="financial_goal" required 
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            onchange="toggleGoalFields()">
+                                            onchange="toggleGoalFields(); validateGoalFieldsProfile()">
                                         <option value="ahorrar" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'ahorrar' ? 'selected' : ''; ?>>Ahorrar</option>
                                         <option value="pagar_deudas" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'pagar_deudas' ? 'selected' : ''; ?>>Pagar Deudas</option>
                                         <option value="controlar_gastos" <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) === 'controlar_gastos' ? 'selected' : ''; ?>>Controlar Gastos</option>
@@ -342,6 +342,24 @@ unset($_SESSION['password_errors']);
                                                value="<?php echo htmlspecialchars($profile_data['savings_deadline'] ?? $profile['savings_deadline'] ?? ''); ?>"
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
                                         <p class="mt-1 text-xs text-gray-500">Debe ser una fecha futura.</p>
+                                    </div>
+                                </div>
+                                <div id="savings_info_profile" class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-info-circle text-blue-600 mt-1 mr-2"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-blue-900 mb-1">Información de tu meta de ahorro:</p>
+                                            <ul id="savings_info_list_profile" class="text-xs text-blue-800 space-y-1"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="savings_warning_profile" class="hidden mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-2"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-yellow-900 mb-1">Advertencia:</p>
+                                            <p id="savings_warning_text_profile" class="text-xs text-yellow-800"></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -398,6 +416,24 @@ unset($_SESSION['password_errors']);
                                             <span class="absolute right-3 top-2.5 text-gray-500 text-sm"><?php echo $profile_data['currency'] ?? $profile['currency']; ?></span>
                                         </div>
                                         <p class="mt-1 text-xs text-gray-500">Opcional. Pago mensual que realizas para las deudas.</p>
+                                    </div>
+                                </div>
+                                <div id="debt_info_profile" class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-info-circle text-blue-600 mt-1 mr-2"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-blue-900 mb-1">Información sobre tu deuda:</p>
+                                            <ul id="debt_info_list_profile" class="text-xs text-blue-800 space-y-1"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="debt_warning_profile" class="hidden mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-2"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-yellow-900 mb-1">Advertencia:</p>
+                                            <p id="debt_warning_text_profile" class="text-xs text-yellow-800"></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -751,6 +787,296 @@ function updateCalculations() {
     }
 }
 
+// Helper function to format currency
+function formatCurrencyProfile(amount, currency = 'MXN') {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: currency
+    }).format(amount);
+}
+
+// Helper function to calculate months between dates
+function calculateMonthsBetweenProfile(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (start >= end) {
+        return 1;
+    }
+    
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+    
+    if (days < 0) {
+        months--;
+        const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    let totalMonths = (years * 12) + months;
+    
+    if (totalMonths === 0) {
+        if (days > 0) {
+            totalMonths = 1;
+        }
+    } else {
+        if (days >= 15) {
+            totalMonths += 1;
+        }
+    }
+    
+    return Math.max(1, totalMonths);
+}
+
+// Validate savings goal in real-time
+function validateSavingsGoalProfile() {
+    const savingsGoal = parseFloat(document.getElementById('savings_goal').value) || 0;
+    const savingsDeadline = document.getElementById('savings_deadline').value;
+    const monthlyIncome = parseFloat(document.getElementById('monthly_income').value) || 0;
+    const currency = document.getElementById('currency').value;
+    
+    const infoBox = document.getElementById('savings_info_profile');
+    const warningBox = document.getElementById('savings_warning_profile');
+    const infoList = document.getElementById('savings_info_list_profile');
+    const warningText = document.getElementById('savings_warning_text_profile');
+    
+    // Hide both initially
+    infoBox.classList.add('hidden');
+    warningBox.classList.add('hidden');
+    infoList.innerHTML = '';
+    
+    if (savingsGoal <= 0 || monthlyIncome <= 0) {
+        return;
+    }
+    
+    const info = [];
+    let hasWarning = false;
+    let warningMessage = '';
+    
+    if (savingsDeadline) {
+        const deadline = new Date(savingsDeadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        deadline.setHours(0, 0, 0, 0);
+        
+        if (deadline <= today) {
+            warningMessage = 'La fecha límite debe ser una fecha futura';
+            hasWarning = true;
+        } else {
+            const months = calculateMonthsBetweenProfile(today, deadline);
+            const requiredMonthly = savingsGoal / months;
+            const percentage = (requiredMonthly / monthlyIncome) * 100;
+            
+            info.push(`Tiempo disponible: ${months} mes${months > 1 ? 'es' : ''}`);
+            info.push(`Ahorro mensual necesario: ${formatCurrencyProfile(requiredMonthly, currency)}`);
+            info.push(`Porcentaje del ingreso: ${percentage.toFixed(1)}%`);
+            
+            if (requiredMonthly > monthlyIncome * 0.50) {
+                warningMessage = `Para alcanzar tu meta en ${months} meses, necesitarías ahorrar ${formatCurrencyProfile(requiredMonthly, currency)} mensualmente (${percentage.toFixed(1)}% de tu ingreso). Esto puede ser difícil de mantener.`;
+                hasWarning = true;
+            } else if (requiredMonthly > monthlyIncome * 0.30) {
+                warningMessage = `Necesitarás ahorrar ${formatCurrencyProfile(requiredMonthly, currency)} mensualmente (${percentage.toFixed(1)}% de tu ingreso). Asegúrate de que esto sea sostenible.`;
+                hasWarning = true;
+            }
+            
+            if (months > 120) {
+                warningMessage = (warningMessage ? warningMessage + ' ' : '') + 'La fecha límite es muy lejana. Considera establecer una meta más cercana para mantener la motivación.';
+                hasWarning = true;
+            }
+        }
+    } else {
+        const recommendedSavings = monthlyIncome * 0.25;
+        info.push(`Ahorro mensual recomendado: ${formatCurrencyProfile(recommendedSavings, currency)} (25% del ingreso)`);
+        info.push(`Tiempo estimado para alcanzar la meta: ${Math.ceil(savingsGoal / recommendedSavings)} meses`);
+    }
+    
+    if (info.length > 0) {
+        infoList.innerHTML = info.map(item => `<li>• ${item}</li>`).join('');
+        infoBox.classList.remove('hidden');
+    }
+    
+    if (hasWarning) {
+        warningText.textContent = warningMessage;
+        warningBox.classList.remove('hidden');
+    }
+}
+
+// Validate debt goal in real-time
+function validateDebtGoalProfile() {
+    const debtAmount = parseFloat(document.getElementById('debt_amount').value) || 0;
+    const debtDeadline = document.getElementById('debt_deadline').value;
+    const monthlyPayment = parseFloat(document.getElementById('monthly_payment').value) || 0;
+    const debtCount = parseInt(document.getElementById('debt_count').value) || 0;
+    const monthlyIncome = parseFloat(document.getElementById('monthly_income').value) || 0;
+    const currency = document.getElementById('currency').value;
+    
+    const infoBox = document.getElementById('debt_info_profile');
+    const warningBox = document.getElementById('debt_warning_profile');
+    const infoList = document.getElementById('debt_info_list_profile');
+    const warningText = document.getElementById('debt_warning_text_profile');
+    
+    // Hide both initially
+    infoBox.classList.add('hidden');
+    warningBox.classList.add('hidden');
+    infoList.innerHTML = '';
+    
+    if (debtAmount <= 0 || monthlyIncome <= 0) {
+        return;
+    }
+    
+    const info = [];
+    let hasWarning = false;
+    let warningMessage = '';
+    
+    const annualIncome = monthlyIncome * 12;
+    const debtRatio = debtAmount / annualIncome;
+    
+    info.push(`Ratio deuda/ingreso anual: ${(debtRatio * 100).toFixed(1)}%`);
+    
+    if (debtCount > 0) {
+        const avgDebtPerLoan = debtAmount / debtCount;
+        info.push(`Número de deudas: ${debtCount}`);
+        info.push(`Deuda promedio por préstamo: ${formatCurrencyProfile(avgDebtPerLoan, currency)}`);
+    }
+    
+    if (debtRatio > 5) {
+        warningMessage = 'Tu deuda es muy alta comparada con tu ingreso anual. Considera buscar asesoría financiera profesional.';
+        hasWarning = true;
+    }
+    
+    if (debtDeadline) {
+        const deadline = new Date(debtDeadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        deadline.setHours(0, 0, 0, 0);
+        
+        if (deadline <= today) {
+            warningMessage = 'La fecha objetivo debe ser una fecha futura';
+            hasWarning = true;
+        } else {
+            const months = calculateMonthsBetweenProfile(today, deadline);
+            const requiredMonthlyPayment = debtAmount / months;
+            const paymentPercentage = (requiredMonthlyPayment / monthlyIncome) * 100;
+            
+            info.push(`Fecha objetivo: ${new Date(debtDeadline).toLocaleDateString('es-MX')}`);
+            info.push(`Tiempo disponible: ${months} mes${months > 1 ? 'es' : ''}`);
+            info.push(`Pago mensual necesario: ${formatCurrencyProfile(requiredMonthlyPayment, currency)}`);
+            info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
+            
+            if (requiredMonthlyPayment > monthlyIncome * 0.50) {
+                warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                    `Para pagar tu deuda en ${months} meses, necesitarías pagar ${formatCurrencyProfile(requiredMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Esto puede ser difícil de mantener.`;
+                hasWarning = true;
+            } else if (requiredMonthlyPayment > monthlyIncome * 0.30) {
+                warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                    `Necesitarás pagar ${formatCurrencyProfile(requiredMonthlyPayment, currency)} mensualmente (${paymentPercentage.toFixed(1)}% de tu ingreso). Asegúrate de que esto sea sostenible.`;
+                hasWarning = true;
+            }
+            
+            if (monthlyPayment > 0) {
+                const monthsToPay = Math.ceil(debtAmount / monthlyPayment);
+                if (monthsToPay > months) {
+                    warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                        `Con un pago mensual de ${formatCurrencyProfile(monthlyPayment, currency)}, tardarías ${monthsToPay} meses en pagar, que es más que tu fecha objetivo (${months} meses). Considera aumentar el pago mensual.`;
+                    hasWarning = true;
+                } else if (monthsToPay <= months) {
+                    info.push(`Con tu pago mensual de ${formatCurrencyProfile(monthlyPayment, currency)}, pagarás la deuda en aproximadamente ${monthsToPay} mes${monthsToPay > 1 ? 'es' : ''}`);
+                }
+            }
+        }
+    } else if (monthlyPayment > 0) {
+        const monthsToPay = Math.ceil(debtAmount / monthlyPayment);
+        const paymentPercentage = (monthlyPayment / monthlyIncome) * 100;
+        
+        info.push(`Pago mensual: ${formatCurrencyProfile(monthlyPayment, currency)}`);
+        info.push(`Porcentaje del ingreso: ${paymentPercentage.toFixed(1)}%`);
+        info.push(`Tiempo estimado para pagar: ${monthsToPay} mes${monthsToPay > 1 ? 'es' : ''} (${(monthsToPay / 12).toFixed(1)} años)`);
+        
+        if (monthlyPayment > monthlyIncome * 0.50) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `El pago mensual de ${formatCurrencyProfile(monthlyPayment, currency)} representa ${paymentPercentage.toFixed(1)}% de tu ingreso. Asegúrate de que esto sea sostenible.`;
+            hasWarning = true;
+        }
+        
+        if (monthsToPay > 120) {
+            warningMessage = (warningMessage ? warningMessage + ' ' : '') + 
+                `Con este pago mensual, tardarías aproximadamente ${monthsToPay} meses (${(monthsToPay / 12).toFixed(1)} años) en pagar tu deuda. Considera aumentar el pago mensual.`;
+            hasWarning = true;
+        }
+    }
+    
+    if (info.length > 0) {
+        infoList.innerHTML = info.map(item => `<li>• ${item}</li>`).join('');
+        infoBox.classList.remove('hidden');
+    }
+    
+    if (hasWarning) {
+        warningText.textContent = warningMessage;
+        warningBox.classList.remove('hidden');
+    }
+}
+
+// Validate other goal in real-time
+function validateOtherGoalProfile() {
+    const description = document.getElementById('goal_description').value.trim();
+    const goalDescriptionField = document.getElementById('goal_description');
+    
+    // Remove previous validation styling
+    goalDescriptionField.classList.remove('border-red-500', 'border-yellow-500', 'border-green-500');
+    
+    if (description.length === 0) {
+        goalDescriptionField.classList.add('border-red-500');
+        return false;
+    } else if (description.length < 10) {
+        goalDescriptionField.classList.add('border-yellow-500');
+        return false;
+    } else {
+        goalDescriptionField.classList.add('border-green-500');
+        return true;
+    }
+}
+
+// Validate goal fields based on current goal
+function validateGoalFieldsProfile() {
+    const goal = document.getElementById('financial_goal').value;
+    
+    // Hide all info/warning boxes first
+    document.getElementById('savings_info_profile').classList.add('hidden');
+    document.getElementById('savings_warning_profile').classList.add('hidden');
+    document.getElementById('debt_info_profile').classList.add('hidden');
+    document.getElementById('debt_warning_profile').classList.add('hidden');
+    
+    // Validate based on goal
+    setTimeout(() => {
+        if (goal === 'ahorrar') {
+            validateSavingsGoalProfile();
+        } else if (goal === 'pagar_deudas') {
+            validateDebtGoalProfile();
+        } else if (goal === 'otro') {
+            validateOtherGoalProfile();
+        }
+    }, 300); // Wait for fields to be shown
+}
+
+// Debounce function to limit function calls
+function debounceProfile(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // El toggle-password se maneja en main.js, no es necesario duplicarlo aquí
     
@@ -780,13 +1106,70 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update calculations after a brief delay to ensure all fields are loaded
     setTimeout(function() {
         updateCalculations();
-    }, 100);
+        // Run initial validations
+        validateGoalFieldsProfile();
+    }, 300);
     
-    // Listen for monthly income changes to update suggestions
-    document.getElementById('monthly_income').addEventListener('input', function() {
+    // Listen for monthly income changes to update suggestions and validations
+    document.getElementById('monthly_income').addEventListener('input', debounceProfile(function() {
         const currentGoal = document.getElementById('financial_goal').value;
         updateSpendingLimitForGoal(currentGoal);
+        updateCalculations();
+        // Re-validate goal fields when income changes
+        if (currentGoal === 'ahorrar') {
+            validateSavingsGoalProfile();
+        } else if (currentGoal === 'pagar_deudas') {
+            validateDebtGoalProfile();
+        }
+    }, 300));
+    
+    // Listen for currency changes to update validations
+    document.getElementById('currency').addEventListener('change', function() {
+        const currentGoal = document.getElementById('financial_goal').value;
+        if (currentGoal === 'ahorrar') {
+            validateSavingsGoalProfile();
+        } else if (currentGoal === 'pagar_deudas') {
+            validateDebtGoalProfile();
+        }
     });
+    
+    // Listen for savings goal field changes
+    const savingsGoalInput = document.getElementById('savings_goal');
+    if (savingsGoalInput) {
+        savingsGoalInput.addEventListener('input', debounceProfile(validateSavingsGoalProfile, 300));
+    }
+    
+    const savingsDeadlineInput = document.getElementById('savings_deadline');
+    if (savingsDeadlineInput) {
+        savingsDeadlineInput.addEventListener('change', validateSavingsGoalProfile);
+    }
+    
+    // Listen for debt field changes
+    const debtAmountInput = document.getElementById('debt_amount');
+    if (debtAmountInput) {
+        debtAmountInput.addEventListener('input', debounceProfile(validateDebtGoalProfile, 300));
+    }
+    
+    const debtDeadlineInput = document.getElementById('debt_deadline');
+    if (debtDeadlineInput) {
+        debtDeadlineInput.addEventListener('change', validateDebtGoalProfile);
+    }
+    
+    const monthlyPaymentInput = document.getElementById('monthly_payment');
+    if (monthlyPaymentInput) {
+        monthlyPaymentInput.addEventListener('input', debounceProfile(validateDebtGoalProfile, 300));
+    }
+    
+    const debtCountInput = document.getElementById('debt_count');
+    if (debtCountInput) {
+        debtCountInput.addEventListener('input', debounceProfile(validateDebtGoalProfile, 300));
+    }
+    
+    // Listen for other goal description changes
+    const goalDescriptionInput = document.getElementById('goal_description');
+    if (goalDescriptionInput) {
+        goalDescriptionInput.addEventListener('input', debounceProfile(validateOtherGoalProfile, 300));
+    }
 });
 </script>
 
