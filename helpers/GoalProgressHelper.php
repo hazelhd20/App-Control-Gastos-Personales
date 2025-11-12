@@ -91,7 +91,8 @@ class GoalProgressHelper {
     }
 
     /**
-     * Actualizar el progreso real del mes actual basado en las transacciones
+     * Actualizar el progreso real del mes actual
+     * El progreso se basa en el monto planificado que se separa automáticamente cada mes
      */
     public function updateCurrentMonthProgress($user_id) {
         $year = date('Y');
@@ -101,7 +102,9 @@ class GoalProgressHelper {
     }
 
     /**
-     * Actualizar el progreso real de un mes específico basado en las transacciones
+     * Actualizar el progreso de un mes específico
+     * El progreso se basa en el monto planificado que se separa automáticamente cada mes
+     * Para spending_control, se mantiene el cálculo basado en gastos reales
      */
     public function updateMonthProgress($user_id, $year, $month) {
         $goal_type = $this->profile_model->getGoalTypeForTracking($user_id);
@@ -113,18 +116,26 @@ class GoalProgressHelper {
         // Asegurar que el objetivo mensual esté inicializado
         $this->initializeMonthGoal($user_id, $year, $month);
 
-        // Calcular el progreso real del mes
-        $actual_amount = $this->transaction_model->getMonthlyProgress($user_id, $year, $month, $goal_type);
+        // Obtener el progreso del mes
+        $progress = $this->progress_model->getByUserMonth($user_id, $year, $month, $goal_type);
+        
+        if (!$progress) {
+            return false;
+        }
 
-        // Para 'spending_control', el método retorna negativo (gastos), convertir a positivo para almacenar
-        // Para 'savings' y 'debt_payment', el monto es ingresos - gastos (puede ser negativo si gastó más de lo que ganó)
-        // Almacenamos siempre el valor absoluto para spending_control, pero mantenemos el signo para savings/debt
+        $planned_amount = floatval($progress['planned_amount']);
+
+        // Para 'spending_control', calcular basado en gastos reales
         if ($goal_type === 'spending_control') {
+            $actual_amount = $this->transaction_model->getMonthlyProgress($user_id, $year, $month, $goal_type);
             $actual_amount = abs($actual_amount);
+        } else {
+            // Para 'savings' y 'debt_payment', el progreso es el monto planificado
+            // ya que cada mes se separa automáticamente esa cantidad según el objetivo financiero
+            $actual_amount = $planned_amount;
         }
 
         // Actualizar el monto real
-        // Nota: Para savings y debt_payment, si el valor es negativo significa que gastó más de lo que ganó ese mes
         return $this->progress_model->updateActualAmount($user_id, $year, $month, $goal_type, $actual_amount);
     }
 
@@ -150,7 +161,7 @@ class GoalProgressHelper {
 
         // Asegurar que el objetivo mensual esté inicializado
         $this->initializeMonthGoal($user_id, $year, $month);
-        
+
         // Actualizar el progreso real
         $this->updateMonthProgress($user_id, $year, $month);
 
@@ -172,17 +183,78 @@ class GoalProgressHelper {
                 $progress['remaining'] = max(0, $progress['planned_amount'] - $total_progress); // Disponible
                 $progress['surplus'] = max(0, $total_progress - $progress['planned_amount']); // Excedido
             } else {
-                // Para savings y debt_payment
-                $progress['total_progress'] = max(0, $total_progress); // Solo mostrar positivo
-                $progress['completion_percentage'] = $progress['planned_amount'] > 0 
-                    ? min(100, max(0, ($progress['total_progress'] / $progress['planned_amount']) * 100)) 
-                    : 0;
-                $progress['remaining'] = max(0, $progress['planned_amount'] - $progress['total_progress']);
-                $progress['surplus'] = max(0, $progress['total_progress'] - $progress['planned_amount']);
+                // Para savings y debt_payment, el progreso es el monto planificado (se separa automáticamente)
+                // El progreso siempre será 100% ya que se separa automáticamente cada mes
+                $progress['total_progress'] = $progress['planned_amount']; // Siempre igual al planificado
+                $progress['completion_percentage'] = 100; // Siempre 100% porque se separa automáticamente
+                $progress['remaining'] = 0; // No falta nada, ya se separó
+                $progress['surplus'] = max(0, $total_progress - $progress['planned_amount']); // Solo si hay ajustes positivos
             }
         }
 
         return $progress;
+    }
+
+    /**
+     * Calcular el progreso acumulado total basado en todos los meses planificados
+     * desde la fecha de inicio hasta la fecha actual
+     */
+    public function getAccumulatedProgress($user_id) {
+        $goal_type = $this->profile_model->getGoalTypeForTracking($user_id);
+        
+        if (!$goal_type) {
+            return 0;
+        }
+
+        $profile = $this->profile_model->getByUserId($user_id);
+        
+        if (!$profile || !$profile['start_date']) {
+            return 0;
+        }
+
+        // Calcular meses desde la fecha de inicio hasta hoy
+        $start_date = new DateTime($profile['start_date']);
+        $today = new DateTime();
+        $today->setTime(0, 0, 0);
+        
+        // Si la fecha de inicio es futura, retornar 0
+        if ($start_date > $today) {
+            return 0;
+        }
+
+        // Obtener el monto planificado mensual
+        $monthly_planned = $this->profile_model->calculateMonthlyGoalAmount($user_id);
+        
+        if ($monthly_planned <= 0) {
+            return 0;
+        }
+
+        // Calcular el número de meses completos desde el inicio hasta hoy
+        $current_year = (int)date('Y');
+        $current_month = (int)date('m');
+        $start_year = (int)$start_date->format('Y');
+        $start_month = (int)$start_date->format('m');
+
+        // Calcular meses transcurridos
+        $months_elapsed = ($current_year - $start_year) * 12 + ($current_month - $start_month);
+        
+        // Si estamos en el mismo mes, contar como 1 mes
+        if ($months_elapsed == 0) {
+            $months_elapsed = 1;
+        } else {
+            // Sumar 1 para incluir el mes actual
+            $months_elapsed += 1;
+        }
+
+        // El progreso acumulado es el monto planificado multiplicado por los meses transcurridos
+        $accumulated = $monthly_planned * $months_elapsed;
+
+        // Para spending_control, retornar 0 (no aplica progreso acumulado)
+        if ($goal_type === 'spending_control') {
+            return 0;
+        }
+
+        return round($accumulated, 2);
     }
 
     /**

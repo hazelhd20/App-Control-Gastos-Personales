@@ -9,6 +9,7 @@ $db = $database->getConnection();
 $user_model = new User($db);
 $profile_model = new FinancialProfile($db);
 $transaction_model = new Transaction($db);
+$goal_progress_helper = new GoalProgressHelper($db);
 
 $user_id = $_SESSION['user_id'];
 $user = $user_model->getById($user_id);
@@ -23,13 +24,14 @@ $total_income = $summary['total_income'] ?? 0;
 $balance = $profile['monthly_income'] + $total_income - $total_expenses; // Monthly balance for display
 $spending_percentage = $profile['spending_limit'] > 0 ? ($total_expenses / $profile['spending_limit']) * 100 : 0;
 
-// Calculate total accumulated savings for savings goal progress
-$total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
+// Calcular progreso acumulado basado en meses planificados (se separa automáticamente cada mes)
+$accumulated_progress = $goal_progress_helper->getAccumulatedProgress($user_id);
+$total_savings_balance = $accumulated_progress;
 
 // Calculate progress for goals
 $savings_progress = 0;
 if ($profile['financial_goal'] === 'ahorrar' && $profile['savings_goal'] > 0) {
-    $savings_progress = min(100, max(0, ($total_savings_balance / $profile['savings_goal']) * 100));
+    $savings_progress = min(100, max(0, ($accumulated_progress / $profile['savings_goal']) * 100));
 }
 
 // Calculate days since start

@@ -8,6 +8,7 @@ $db = $database->getConnection();
 
 $transaction_model = new Transaction($db);
 $profile_model = new FinancialProfile($db);
+$goal_progress_helper = new GoalProgressHelper($db);
 
 $user_id = $_SESSION['user_id'];
 $profile = $profile_model->getByUserId($user_id);
@@ -22,8 +23,9 @@ $categories = $transaction_model->getExpensesByCategory($user_id, $year, $month)
 // Calculate monthly balance for display
 $monthly_balance = ($summary['total_income'] ?? 0) - ($summary['total_expenses'] ?? 0);
 
-// Calculate total accumulated savings for savings goal progress
-$total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
+// Calcular progreso acumulado basado en meses planificados (se separa automáticamente cada mes)
+$accumulated_progress = $goal_progress_helper->getAccumulatedProgress($user_id);
+$total_savings_balance = $accumulated_progress;
 ?>
 
 <div class="min-h-screen bg-gray-50 py-6 sm:py-8">
@@ -230,7 +232,7 @@ $total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
                         <p class="text-xs sm:text-sm text-gray-600 mb-2">Progreso</p>
                         <p class="text-2xl sm:text-3xl font-bold text-purple-600">
                             <?php 
-                            $savings_progress = $profile['savings_goal'] > 0 ? (max(0, $total_savings_balance) / $profile['savings_goal']) * 100 : 0;
+                            $savings_progress = $profile['savings_goal'] > 0 ? (max(0, $accumulated_progress) / $profile['savings_goal']) * 100 : 0;
                             echo round(min(100, max(0, $savings_progress)), 1) . '%'; 
                             ?>
                         </p>
@@ -269,8 +271,8 @@ $total_savings_balance = $transaction_model->getTotalSavingsBalance($user_id);
                     <div class="text-center">
                         <p class="text-xs sm:text-sm text-gray-600 mb-2">Deuda Restante</p>
                         <?php 
-                        $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $total_savings_balance) / $profile['debt_amount']) * 100 : 0;
-                        $debt_remaining = max(0, $profile['debt_amount'] - max(0, $total_savings_balance));
+                        $debt_progress = $profile['debt_amount'] > 0 ? (max(0, $accumulated_progress) / $profile['debt_amount']) * 100 : 0;
+                        $debt_remaining = max(0, $profile['debt_amount'] - max(0, $accumulated_progress));
                         ?>
                         <p class="text-2xl sm:text-3xl font-bold <?php echo $debt_remaining > 0 ? 'text-orange-600' : 'text-green-600'; ?>">
                             <?php echo formatCurrency($debt_remaining, $profile['currency']); ?>
