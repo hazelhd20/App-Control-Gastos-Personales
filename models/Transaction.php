@@ -273,6 +273,27 @@ class Transaction {
     }
 
     /**
+     * Count transactions by category name and type
+     * Used to check if a category has associated transactions before deletion
+     */
+    public function countByCategory($category_name, $type, $user_id) {
+        $query = "SELECT COUNT(*) as count 
+                  FROM " . $this->table . " 
+                  WHERE user_id = :user_id 
+                  AND category = :category 
+                  AND type = :type";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':category', $category_name);
+        $stmt->bindParam(':type', $type);
+        $stmt->execute();
+        
+        $result = $stmt->fetch();
+        return intval($result['count'] ?? 0);
+    }
+
+    /**
      * Calcular el progreso real del mes para objetivos financieros
      * Para ahorro: ingresos del mes - gastos del mes
      * Para deudas: pagos realizados (se calcula diferente)

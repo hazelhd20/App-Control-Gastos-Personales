@@ -8,11 +8,13 @@ require_once __DIR__ . '/../config/config.php';
 class CategoryController {
     private $db;
     private $category;
+    private $transaction;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->category = new Category($this->db);
+        $this->transaction = new Transaction($this->db);
     }
 
     /**
@@ -261,17 +263,53 @@ class CategoryController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user_id = $_SESSION['user_id'];
             $id = intval($_POST['id'] ?? 0);
+            $errors = [];
 
-            if ($this->category->delete($id, $user_id)) {
-                setFlashMessage('Categoría eliminada exitosamente', 'success');
+            // Validate ID
+            if ($id <= 0) {
+                $errors[] = "ID de categoría no válido";
             } else {
-                setFlashMessage('Error al eliminar la categoría', 'error');
+                // Get category to check if it exists and belongs to user
+                $category = $this->category->getById($id, $user_id);
+                
+                if (!$category || $category['user_id'] != $user_id) {
+                    $errors[] = "La categoría no existe o no tienes permiso para eliminarla";
+                } else {
+                    // Check if category has associated transactions
+                    $transaction_count = $this->transaction->countByCategory(
+                        $category['name'], 
+                        $category['type'], 
+                        $user_id
+                    );
+                    
+                    if ($transaction_count > 0) {
+                        $errors[] = sprintf(
+                            "No se puede eliminar la categoría '%s' porque tiene %d transacción(es) asociada(s). Por favor, reasigna las transacciones a otra categoría primero.",
+                            $category['name'],
+                            $transaction_count
+                        );
+                    }
+                }
+            }
+
+            if (empty($errors)) {
+                if ($this->category->delete($id, $user_id)) {
+                    setFlashMessage('Categoría eliminada exitosamente', 'success');
+                } else {
+                    $errors[] = 'Error al eliminar la categoría';
+                }
+            } else {
+                setFlashMessage($errors[0], 'error');
             }
 
             // Return JSON if AJAX request
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                echo json_encode(['success' => true, 'message' => 'Categoría eliminada exitosamente']);
+                if (empty($errors)) {
+                    echo json_encode(['success' => true, 'message' => 'Categoría eliminada exitosamente']);
+                } else {
+                    echo json_encode(['success' => false, 'errors' => $errors]);
+                }
                 exit();
             }
         }

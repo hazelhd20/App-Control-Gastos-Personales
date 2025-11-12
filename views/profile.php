@@ -230,7 +230,9 @@ unset($_SESSION['password_errors']);
                                         Teléfono *
                                     </label>
                                     <input id="phone" name="phone" type="tel" required 
-                                           pattern="[0-9+\-() ]{7,20}"
+                                           data-pattern="[0-9+()\s\-]{7,20}"
+                                           data-min-length="7"
+                                           data-max-length="20"
                                            value="<?php echo htmlspecialchars($profile_data['phone'] ?? $user['phone']); ?>"
                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <p class="mt-1 text-xs text-gray-500">Mínimo 7 dígitos, máximo 15 dígitos.</p>

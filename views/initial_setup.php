@@ -1498,11 +1498,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     toggleGoalFields();
     
-    // Update auto limit when income changes
+    // Update when monthly income changes
     document.getElementById('monthly_income').addEventListener('input', debounce(function() {
         updateAutoLimit();
         const goal = getSelectedGoal();
-        if (goal === 'ahorrar') validateSavingsGoal();
+        if (goal === 'ahorrar') {
+            // calculateRecommendedDeadline() already checks if deadline was manually set
+            calculateRecommendedDeadline();
+            validateSavingsGoal();
+        }
         if (goal === 'pagar_deudas') validateDebtGoal();
         const limitType = document.querySelector('input[name="spending_limit_type"]:checked');
         if (limitType && limitType.value === 'manual') {
@@ -1515,28 +1519,18 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAutoLimit();
         const goal = getSelectedGoal();
         if (goal === 'ahorrar') {
+            // calculateRecommendedDeadline() already checks if deadline was manually set
             calculateRecommendedDeadline();
             validateSavingsGoal();
         }
         if (goal === 'pagar_deudas') validateDebtGoal();
     });
     
-    // Update when monthly income changes
-    document.getElementById('monthly_income').addEventListener('input', debounce(function() {
-        updateAutoLimit();
-        const goal = getSelectedGoal();
-        if (goal === 'ahorrar') {
-            calculateRecommendedDeadline();
-            validateSavingsGoal();
-        }
-        if (goal === 'pagar_deudas') validateDebtGoal();
-    }, 300));
-    
     // Update when savings goal changes
     document.getElementById('savings_goal').addEventListener('input', debounce(function() {
         calculateRecommendedDeadline();
+        // validateSavingsGoal() already calls updateAutoLimit() at the end
         validateSavingsGoal();
-        updateAutoLimit();
     }, 300));
     
     document.getElementById('savings_deadline').addEventListener('change', function() {
@@ -1545,8 +1539,8 @@ document.addEventListener('DOMContentLoaded', function() {
             deadlineManuallySet = true;
             markDeadlineAsManuallySet();
         }
+        // validateSavingsGoal() already calls updateAutoLimit() at the end
         validateSavingsGoal();
-        updateAutoLimit();
     });
     
     // Calculate recommended deadline on page load if goal and income are set

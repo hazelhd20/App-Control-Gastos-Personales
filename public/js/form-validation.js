@@ -104,8 +104,12 @@ class FormValidator {
             }
 
             // Pattern validation
-            if (rules.pattern && !new RegExp(rules.pattern).test(value)) {
-                errors.push(this.getErrorMessage('pattern', field));
+            if (rules.pattern) {
+                // Ensure pattern matches the entire string
+                const patternRegex = rules.pattern.startsWith('^') ? rules.pattern : `^${rules.pattern}$`;
+                if (!new RegExp(patternRegex).test(value)) {
+                    errors.push(this.getErrorMessage('pattern', field));
+                }
             }
 
             // Min length
@@ -183,6 +187,9 @@ class FormValidator {
         }
         if (field.hasAttribute('data-pattern')) {
             rules.pattern = field.getAttribute('data-pattern');
+        } else if (field.hasAttribute('pattern')) {
+            // Also read the HTML pattern attribute
+            rules.pattern = field.getAttribute('pattern');
         }
         
         return rules;

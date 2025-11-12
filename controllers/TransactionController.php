@@ -205,6 +205,21 @@ class TransactionController {
                             $max_years_back === 1 ? 'año' : 'años'
                         );
                     }
+                    
+                    // Validate that transaction date is not before profile start date
+                    if ($user_profile && !empty($user_profile['start_date'])) {
+                        $start_date = new DateTime($user_profile['start_date']);
+                        $start_date->setTime(0, 0, 0);
+                        $transaction_datetime->setTime(0, 0, 0);
+                        
+                        if ($transaction_datetime < $start_date) {
+                            $formatted_start_date = date('d/m/Y', strtotime($user_profile['start_date']));
+                            $errors[] = sprintf(
+                                "La fecha de la transacción no puede ser anterior a la fecha de inicio de tu perfil (%s)",
+                                $formatted_start_date
+                            );
+                        }
+                    }
                 }
             }
 
