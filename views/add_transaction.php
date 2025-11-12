@@ -141,9 +141,9 @@ unset($_SESSION['transaction_errors'], $_SESSION['transaction_data']);
                         <input id="transaction_date" name="transaction_date" type="date" required 
                                value="<?php echo htmlspecialchars($old_data['transaction_date'] ?? date('Y-m-d')); ?>"
                                max="<?php echo date('Y-m-d'); ?>"
-                               min="<?php echo date('Y-m-d', strtotime('-3 years')); ?>"
+                               min="<?php echo date('Y-m-d', strtotime('-1 week')); ?>"
                                class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                        <p class="mt-1 text-xs text-gray-500" id="date_help_text">Gastos: hasta hoy. Ingresos: hasta mañana. Máximo 3-5 años atrás.</p>
+                        <p class="mt-1 text-xs text-gray-500" id="date_help_text">Gastos: hasta hoy, máximo 1 semana atrás. Ingresos: hasta mañana, máximo 2 semanas atrás.</p>
                     </div>
                 </div>
 
@@ -288,10 +288,10 @@ function toggleTransactionType() {
                 const today = new Date();
                 today.setHours(23, 59, 59, 999);
                 transactionDate.max = today.toISOString().split('T')[0];
-                const threeYearsAgo = new Date();
-                threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-                transactionDate.min = threeYearsAgo.toISOString().split('T')[0];
-                dateHelpText.textContent = 'Gastos: hasta hoy. Máximo 3 años atrás.';
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                transactionDate.min = oneWeekAgo.toISOString().split('T')[0];
+                dateHelpText.textContent = 'Gastos: hasta hoy, máximo 1 semana atrás.';
             } else {
                 options[index].classList.add('border-green-500', 'bg-green-50');
                 typeInput.value = 'income';
@@ -307,10 +307,10 @@ function toggleTransactionType() {
                 tomorrow.setDate(tomorrow.getDate() + 1);
                 tomorrow.setHours(23, 59, 59, 999);
                 transactionDate.max = tomorrow.toISOString().split('T')[0];
-                const fiveYearsAgo = new Date();
-                fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-                transactionDate.min = fiveYearsAgo.toISOString().split('T')[0];
-                dateHelpText.textContent = 'Ingresos: hasta mañana. Máximo 5 años atrás.';
+                const twoWeeksAgo = new Date();
+                twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+                transactionDate.min = twoWeeksAgo.toISOString().split('T')[0];
+                dateHelpText.textContent = 'Ingresos: hasta mañana, máximo 2 semanas atrás.';
             }
         } else {
             options[index].classList.remove('active', 'border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50');
@@ -419,20 +419,48 @@ document.getElementById('transactionForm').addEventListener('submit', function(e
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(23, 59, 59, 999);
         
-        if (typeInput.value === 'expense' && selectedDate > today) {
-            e.preventDefault();
-            if (!hasErrors) {
-                alert('La fecha del gasto no puede ser futura');
-                transactionDate.focus();
+        if (typeInput.value === 'expense') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            oneWeekAgo.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < oneWeekAgo) {
+                e.preventDefault();
+                if (!hasErrors) {
+                    alert('La fecha del gasto no puede ser de hace más de 1 semana');
+                    transactionDate.focus();
+                }
+                hasErrors = true;
+            } else if (selectedDate > today) {
+                e.preventDefault();
+                if (!hasErrors) {
+                    alert('La fecha del gasto no puede ser futura');
+                    transactionDate.focus();
+                }
+                hasErrors = true;
             }
-            hasErrors = true;
-        } else if (typeInput.value === 'income' && selectedDate > tomorrow) {
-            e.preventDefault();
-            if (!hasErrors) {
-                alert('La fecha del ingreso no puede ser más de 1 día en el futuro');
-                transactionDate.focus();
+        } else if (typeInput.value === 'income') {
+            const twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+            twoWeeksAgo.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < twoWeeksAgo) {
+                e.preventDefault();
+                if (!hasErrors) {
+                    alert('La fecha del ingreso no puede ser de hace más de 2 semanas');
+                    transactionDate.focus();
+                }
+                hasErrors = true;
+            } else if (selectedDate > tomorrow) {
+                e.preventDefault();
+                if (!hasErrors) {
+                    alert('La fecha del ingreso no puede ser más de 1 día en el futuro');
+                    transactionDate.focus();
+                }
+                hasErrors = true;
             }
-            hasErrors = true;
         }
     }
     
@@ -491,17 +519,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         today.setHours(23, 59, 59, 999);
         document.getElementById('transaction_date').max = today.toISOString().split('T')[0];
-        const threeYearsAgo = new Date();
-        threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-        document.getElementById('transaction_date').min = threeYearsAgo.toISOString().split('T')[0];
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        document.getElementById('transaction_date').min = oneWeekAgo.toISOString().split('T')[0];
     } else {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(23, 59, 59, 999);
         document.getElementById('transaction_date').max = tomorrow.toISOString().split('T')[0];
-        const fiveYearsAgo = new Date();
-        fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-        document.getElementById('transaction_date').min = fiveYearsAgo.toISOString().split('T')[0];
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        document.getElementById('transaction_date').min = twoWeeksAgo.toISOString().split('T')[0];
     }
 });
 </script>

@@ -178,14 +178,30 @@ class TransactionController {
                     $today = new DateTime();
                     $today->setTime(23, 59, 59); // End of today
                     
-                    // For expenses, date cannot be in the future
-                    // For income, allow today and past dates (income can be registered when received)
+                    // For expenses, date cannot be more than 1 week in the past
+                    // For income, date cannot be more than 2 weeks in the past
                     if ($type === 'expense') {
+                        $oneWeekAgo = clone $today;
+                        $oneWeekAgo->modify('-7 days');
+                        $oneWeekAgo->setTime(0, 0, 0);
+                        $transaction_datetime->setTime(0, 0, 0);
+                        
+                        if ($transaction_datetime < $oneWeekAgo) {
+                            $errors[] = "La fecha del gasto no puede ser de hace más de 1 semana";
+                        }
                         if ($transaction_datetime > $today) {
                             $errors[] = "La fecha del gasto no puede ser futura";
                         }
                     } else {
                         // For income, allow up to 1 day in the future (in case user registers today's income in advance)
+                        $twoWeeksAgo = clone $today;
+                        $twoWeeksAgo->modify('-14 days');
+                        $twoWeeksAgo->setTime(0, 0, 0);
+                        $transaction_datetime->setTime(0, 0, 0);
+                        
+                        if ($transaction_datetime < $twoWeeksAgo) {
+                            $errors[] = "La fecha del ingreso no puede ser de hace más de 2 semanas";
+                        }
                         $tomorrow = clone $today;
                         $tomorrow->modify('+1 day');
                         $tomorrow->setTime(23, 59, 59);
