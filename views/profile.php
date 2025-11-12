@@ -314,7 +314,7 @@ unset($_SESSION['password_errors']);
                             </div>
 
                             <!-- Savings Goal Fields -->
-                            <div id="savings-fields" class="mt-4 p-4 bg-pink-50 border border-pink-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'ahorrar' ? 'hidden' : ''; ?>">
+                            <div id="savings-fields" class="mt-4 p-4 bg-pink-50 border border-pink-200 rounded-lg transition-all duration-300 <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'ahorrar' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-piggy-bank text-pink-600 mr-2"></i>Meta de Ahorro
                                 </h4>
@@ -347,7 +347,7 @@ unset($_SESSION['password_errors']);
                             </div>
 
                             <!-- Debt Fields -->
-                            <div id="debt-fields" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'pagar_deudas' ? 'hidden' : ''; ?>">
+                            <div id="debt-fields" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg transition-all duration-300 <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'pagar_deudas' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-hand-holding-usd text-red-600 mr-2"></i>Información de Deudas
                                 </h4>
@@ -403,7 +403,7 @@ unset($_SESSION['password_errors']);
                             </div>
 
                             <!-- Other Goal Field -->
-                            <div id="other-goal-fields" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'otro' ? 'hidden' : ''; ?>">
+                            <div id="other-goal-fields" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg transition-all duration-300 <?php echo ($profile_data['financial_goal'] ?? $profile['financial_goal']) !== 'otro' ? 'hidden' : ''; ?>">
                                 <h4 class="text-sm font-semibold text-gray-900 mb-3">
                                     <i class="fas fa-edit text-purple-600 mr-2"></i>Descripción del Objetivo
                                 </h4>
@@ -531,22 +531,191 @@ unset($_SESSION['password_errors']);
 </div>
 
 <script>
+// Store initial goal to detect changes
+let initialGoal = null;
+
+function hasDataInFields(goalType) {
+    if (goalType === 'ahorrar') {
+        const savingsGoal = document.getElementById('savings_goal').value;
+        const savingsDeadline = document.getElementById('savings_deadline').value;
+        return savingsGoal || savingsDeadline;
+    } else if (goalType === 'pagar_deudas') {
+        const debtAmount = document.getElementById('debt_amount').value;
+        const debtDeadline = document.getElementById('debt_deadline').value;
+        const monthlyPayment = document.getElementById('monthly_payment').value;
+        const debtCount = document.getElementById('debt_count').value;
+        return debtAmount || debtDeadline || monthlyPayment || debtCount;
+    } else if (goalType === 'otro') {
+        const goalDescription = document.getElementById('goal_description').value;
+        return goalDescription && goalDescription.trim().length > 0;
+    }
+    return false;
+}
+
+function clearGoalFields(goalType) {
+    if (goalType === 'ahorrar') {
+        document.getElementById('savings_goal').value = '';
+        document.getElementById('savings_deadline').value = '';
+    } else if (goalType === 'pagar_deudas') {
+        document.getElementById('debt_amount').value = '';
+        document.getElementById('debt_deadline').value = '';
+        document.getElementById('monthly_payment').value = '';
+        document.getElementById('debt_count').value = '';
+    } else if (goalType === 'otro') {
+        document.getElementById('goal_description').value = '';
+    }
+}
+
+function showGoalChangeWarning(oldGoal, newGoal, callback) {
+    const hasOldData = hasDataInFields(oldGoal);
+    
+    if (hasOldData) {
+        const goalNames = {
+            'ahorrar': 'Ahorrar',
+            'pagar_deudas': 'Pagar Deudas',
+            'controlar_gastos': 'Controlar Gastos',
+            'otro': 'Otro'
+        };
+        
+        if (confirm(`⚠️ Advertencia: Tienes datos guardados para el objetivo "${goalNames[oldGoal]}".\n\nAl cambiar a "${goalNames[newGoal]}", estos datos se ocultarán pero no se eliminarán.\n\n¿Deseas continuar?`)) {
+            callback();
+        } else {
+            // Revert to old goal
+            document.getElementById('financial_goal').value = oldGoal;
+            return false;
+        }
+    } else {
+        callback();
+    }
+    return true;
+}
+
+function updateSpendingLimitForGoal(goal) {
+    const monthlyIncome = parseFloat(document.getElementById('monthly_income').value) || 0;
+    const spendingLimitInput = document.getElementById('spending_limit');
+    const infoText = document.getElementById('spending_limit_info');
+    const currency = document.getElementById('currency').value;
+    
+    if (monthlyIncome <= 0) {
+        return;
+    }
+    
+    let recommendedLimit = 0;
+    let message = '';
+    let messageClass = 'mt-1 text-xs text-gray-500';
+    
+    switch(goal) {
+        case 'ahorrar':
+            // Para ahorrar, recomendar 70% del ingreso (dejar 30% para ahorro)
+            recommendedLimit = monthlyIncome * 0.70;
+            message = `💡 Límite recomendado para ahorrar: ${recommendedLimit.toFixed(2)} ${currency} (70% del ingreso, dejando 30% para ahorro)`;
+            messageClass = 'mt-1 text-xs text-blue-600';
+            break;
+        case 'pagar_deudas':
+            // Para pagar deudas, recomendar 60% del ingreso (dejar 40% para pagos)
+            recommendedLimit = monthlyIncome * 0.60;
+            message = `💡 Límite recomendado para pagar deudas: ${recommendedLimit.toFixed(2)} ${currency} (60% del ingreso, dejando 40% para pagos)`;
+            messageClass = 'mt-1 text-xs text-blue-600';
+            break;
+        case 'controlar_gastos':
+            // Para controlar gastos, recomendar 80% del ingreso
+            recommendedLimit = monthlyIncome * 0.80;
+            message = `💡 Límite recomendado para controlar gastos: ${recommendedLimit.toFixed(2)} ${currency} (80% del ingreso)`;
+            messageClass = 'mt-1 text-xs text-blue-600';
+            break;
+        case 'otro':
+            // Para otros objetivos, recomendar 75% del ingreso
+            recommendedLimit = monthlyIncome * 0.75;
+            message = `💡 Límite recomendado: ${recommendedLimit.toFixed(2)} ${currency} (75% del ingreso)`;
+            messageClass = 'mt-1 text-xs text-blue-600';
+            break;
+    }
+    
+    // Only suggest if current limit is very different (more than 20% difference)
+    const currentLimit = parseFloat(spendingLimitInput.value) || 0;
+    const difference = Math.abs(currentLimit - recommendedLimit);
+    const percentageDiff = (difference / monthlyIncome) * 100;
+    
+    if (percentageDiff > 20) {
+        infoText.textContent = message;
+        infoText.className = messageClass;
+        
+        // Show suggestion button
+        if (!document.getElementById('apply-limit-suggestion')) {
+            const suggestionBtn = document.createElement('button');
+            suggestionBtn.id = 'apply-limit-suggestion';
+            suggestionBtn.type = 'button';
+            suggestionBtn.className = 'mt-2 text-xs text-blue-600 hover:text-blue-800 underline';
+            suggestionBtn.textContent = 'Aplicar límite sugerido';
+            suggestionBtn.onclick = function() {
+                spendingLimitInput.value = recommendedLimit.toFixed(2);
+                updateCalculations();
+                this.remove();
+            };
+            infoText.parentElement.appendChild(suggestionBtn);
+        }
+    }
+}
+
 function toggleGoalFields() {
     const goal = document.getElementById('financial_goal').value;
     const savingsFields = document.getElementById('savings-fields');
     const debtFields = document.getElementById('debt-fields');
     const otherFields = document.getElementById('other-goal-fields');
     
-    savingsFields.classList.add('hidden');
-    debtFields.classList.add('hidden');
-    otherFields.classList.add('hidden');
+    // Check if goal actually changed
+    if (goal === initialGoal) {
+        return;
+    }
     
-    if (goal === 'ahorrar') {
-        savingsFields.classList.remove('hidden');
-    } else if (goal === 'pagar_deudas') {
-        debtFields.classList.remove('hidden');
-    } else if (goal === 'otro') {
-        otherFields.classList.remove('hidden');
+    // Show warning if there's data in the old goal fields
+    const oldGoal = initialGoal;
+    const goalChanged = showGoalChangeWarning(oldGoal, goal, function() {
+        // Hide all fields with fade out
+        [savingsFields, debtFields, otherFields].forEach(field => {
+            if (!field.classList.contains('hidden')) {
+                field.style.opacity = '0';
+                field.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    field.classList.add('hidden');
+                    field.style.opacity = '';
+                    field.style.transform = '';
+                }, 200);
+            }
+        });
+        
+        // Show relevant fields with fade in
+        setTimeout(() => {
+            let targetField = null;
+            if (goal === 'ahorrar') {
+                targetField = savingsFields;
+            } else if (goal === 'pagar_deudas') {
+                targetField = debtFields;
+            } else if (goal === 'otro') {
+                targetField = otherFields;
+            }
+            
+            if (targetField) {
+                targetField.classList.remove('hidden');
+                targetField.style.opacity = '0';
+                targetField.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    targetField.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    targetField.style.opacity = '1';
+                    targetField.style.transform = 'translateY(0)';
+                }, 10);
+            }
+            
+            // Update spending limit suggestion
+            updateSpendingLimitForGoal(goal);
+            
+            // Update initial goal
+            initialGoal = goal;
+        }, 200);
+    });
+    
+    if (!goalChanged) {
+        return;
     }
 }
 
@@ -555,6 +724,12 @@ function updateCalculations() {
     const spendingLimit = parseFloat(document.getElementById('spending_limit').value) || 0;
     const currency = document.getElementById('currency').value;
     const infoText = document.getElementById('spending_limit_info');
+    
+    // Remove suggestion button if exists
+    const suggestionBtn = document.getElementById('apply-limit-suggestion');
+    if (suggestionBtn) {
+        suggestionBtn.remove();
+    }
     
     if (monthlyIncome > 0 && spendingLimit > 0) {
         const percentage = (spendingLimit / monthlyIncome) * 100;
@@ -571,35 +746,47 @@ function updateCalculations() {
             infoText.className = 'mt-1 text-xs text-green-600';
         }
     } else {
-        infoText.textContent = '';
+        infoText.textContent = 'El límite de gasto se ajusta según tu ingreso y objetivos.';
+        infoText.className = 'mt-1 text-xs text-gray-500';
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-password').forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('input[type="password"], input[type="text"]');
-            const icon = this.querySelector('i');
-            
-            if (input && input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else if (input && input.type === 'text') {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    });
+    // El toggle-password se maneja en main.js, no es necesario duplicarlo aquí
     
-    // Initialize goal fields based on current selection
-    toggleGoalFields();
+    // Initialize goal fields based on current selection (without animation on load)
+    const goal = document.getElementById('financial_goal').value;
+    initialGoal = goal; // Set initial goal
+    
+    const savingsFields = document.getElementById('savings-fields');
+    const debtFields = document.getElementById('debt-fields');
+    const otherFields = document.getElementById('other-goal-fields');
+    
+    savingsFields.classList.add('hidden');
+    debtFields.classList.add('hidden');
+    otherFields.classList.add('hidden');
+    
+    if (goal === 'ahorrar') {
+        savingsFields.classList.remove('hidden');
+    } else if (goal === 'pagar_deudas') {
+        debtFields.classList.remove('hidden');
+    } else if (goal === 'otro') {
+        otherFields.classList.remove('hidden');
+    }
+    
+    // Update spending limit suggestion for current goal
+    updateSpendingLimitForGoal(goal);
     
     // Update calculations after a brief delay to ensure all fields are loaded
     setTimeout(function() {
         updateCalculations();
     }, 100);
+    
+    // Listen for monthly income changes to update suggestions
+    document.getElementById('monthly_income').addEventListener('input', function() {
+        const currentGoal = document.getElementById('financial_goal').value;
+        updateSpendingLimitForGoal(currentGoal);
+    });
 });
 </script>
 

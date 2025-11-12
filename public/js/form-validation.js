@@ -28,11 +28,21 @@ class FormValidator {
                 
                 // Add real-time validation
                 if (this.options.validateOnInput) {
-                    field.addEventListener('input', () => this.validateField(field, false));
+                    field.addEventListener('input', () => {
+                        // Ignorar validación si se está cambiando el tipo de contraseña
+                        if (!field.hasAttribute('data-toggle-password')) {
+                            this.validateField(field, false);
+                        }
+                    });
                 }
                 
                 if (this.options.validateOnBlur) {
-                    field.addEventListener('blur', () => this.validateField(field, true));
+                    field.addEventListener('blur', () => {
+                        // Ignorar validación si se está cambiando el tipo de contraseña
+                        if (!field.hasAttribute('data-toggle-password')) {
+                            this.validateField(field, true);
+                        }
+                    });
                 }
             }
         });
@@ -53,6 +63,11 @@ class FormValidator {
     }
 
     validateField(field, showError = true) {
+        // Ignorar validación si se está cambiando el tipo de contraseña
+        if (field.hasAttribute('data-toggle-password')) {
+            return true;
+        }
+        
         const fieldName = field.name || field.id;
         const value = field.value.trim();
         const rules = this.getFieldRules(field);
@@ -89,8 +104,8 @@ class FormValidator {
                     break;
             }
 
-            // Password validation
-            if (field.type === 'password' && field.hasAttribute('data-validate-password')) {
+            // Password validation (verificar por atributo, no por tipo, ya que el tipo puede cambiar a text)
+            if (field.hasAttribute('data-validate-password')) {
                 const passwordErrors = this.validatePassword(value);
                 errors.push(...passwordErrors);
             }

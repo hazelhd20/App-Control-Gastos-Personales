@@ -117,6 +117,23 @@ class ProfileController {
                 $date_parts = explode('-', $start_date);
                 if (count($date_parts) !== 3 || !checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
                     $errors[] = "La fecha de inicio no es válida";
+                } else {
+                    // Validate that start date is not more than 1 week in the past
+                    $start_datetime = new DateTime($start_date);
+                    $today = new DateTime();
+                    $today->setTime(23, 59, 59);
+                    $oneWeekAgo = clone $today;
+                    $oneWeekAgo->modify('-7 days');
+                    $oneWeekAgo->setTime(0, 0, 0);
+                    $start_datetime->setTime(0, 0, 0);
+                    
+                    if ($start_datetime < $oneWeekAgo) {
+                        $errors[] = "La fecha de inicio no puede ser más antigua que una semana";
+                    }
+                    // Validate that start date is not in the future
+                    if ($start_datetime > $today) {
+                        $errors[] = "La fecha de inicio no puede ser futura";
+                    }
                 }
             }
 

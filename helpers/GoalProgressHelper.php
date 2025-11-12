@@ -104,6 +104,7 @@ class GoalProgressHelper {
     /**
      * Actualizar el progreso de un mes específico
      * El progreso se basa en el monto planificado que se separa automáticamente cada mes
+     * según el objetivo financiero configurado en el formulario inicial
      * Para spending_control, se mantiene el cálculo basado en gastos reales
      */
     public function updateMonthProgress($user_id, $year, $month) {
@@ -198,6 +199,7 @@ class GoalProgressHelper {
     /**
      * Calcular el progreso acumulado total basado en todos los meses planificados
      * desde la fecha de inicio hasta la fecha actual
+     * Cada mes se separa automáticamente el monto planificado según el objetivo financiero
      */
     public function getAccumulatedProgress($user_id) {
         $goal_type = $this->profile_model->getGoalTypeForTracking($user_id);
@@ -247,6 +249,7 @@ class GoalProgressHelper {
         }
 
         // El progreso acumulado es el monto planificado multiplicado por los meses transcurridos
+        // ya que cada mes se separa automáticamente esa cantidad
         $accumulated = $monthly_planned * $months_elapsed;
 
         // Para spending_control, retornar 0 (no aplica progreso acumulado)

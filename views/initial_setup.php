@@ -68,7 +68,12 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                     </label>
                     <input id="start_date" name="start_date" type="date" required 
                            value="<?php echo htmlspecialchars($old_data['start_date'] ?? date('Y-m-d')); ?>"
+                           max="<?php echo date('Y-m-d'); ?>"
+                           min="<?php echo date('Y-m-d', strtotime('-7 days')); ?>"
                            class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="mt-1 text-xs text-gray-500">
+                        La fecha no puede ser más antigua que una semana
+                    </p>
                 </div>
 
                 <!-- Payment Methods -->
@@ -324,7 +329,7 @@ unset($_SESSION['setup_errors'], $_SESSION['setup_data']);
                             <input id="debt_deadline" name="debt_deadline" type="date" 
                                    value="<?php echo htmlspecialchars($old_data['debt_deadline'] ?? ''); ?>"
                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   min="<?php echo date('Y-m-d', strtotime('+1 month')); ?>"
+                                   min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
                                    onchange="validateDebtGoal(); calculateRecommendedMonthlyPayment();">
                             <p class="mt-1 text-xs text-gray-500">
                                 <span id="debt_deadline_recommendation_text" class="hidden text-blue-600 font-medium">

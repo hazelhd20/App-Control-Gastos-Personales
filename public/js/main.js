@@ -66,25 +66,78 @@ function initializeFormValidation() {
 
 /**
  * Password Toggle
+ * Usa event delegation para funcionar incluso si los elementos se agregan dinámicamente
  */
+let passwordToggleInitialized = false;
+
 function initializePasswordToggles() {
-    const toggleButtons = document.querySelectorAll('.toggle-password');
+    // Evitar agregar múltiples listeners
+    if (passwordToggleInitialized) {
+        return;
+    }
     
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.previousElementSibling;
-            const icon = this.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
+    passwordToggleInitialized = true;
+    
+    // Usar event delegation en el documento para capturar todos los clicks
+    document.addEventListener('click', function(e) {
+        // Verificar si el click fue en un toggle-password o en su icono
+        const toggleButton = e.target.closest('.toggle-password');
+        
+        if (!toggleButton) {
+            return;
+        }
+        
+        // Prevenir que el evento active la validación
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Buscar el input dentro del contenedor padre (más robusto)
+        // El toggle-password está dentro de un div.relative junto con el input
+        const container = toggleButton.parentElement;
+        
+        // Buscar cualquier input dentro del contenedor (más robusto)
+        let input = container.querySelector('input');
+        
+        // Si no se encuentra en el contenedor directo, buscar en el padre
+        if (!input && container.parentElement) {
+            input = container.parentElement.querySelector('input');
+        }
+        
+        const icon = toggleButton.querySelector('i');
+        
+        if (!input || !icon) {
+            return;
+        }
+        
+        // Guardar el valor actual para restaurarlo después
+        const currentValue = input.value;
+        const currentType = input.type;
+        const isPassword = currentType === 'password';
+        
+        // Marcar que estamos cambiando el tipo para evitar validación
+        input.setAttribute('data-toggle-password', 'true');
+        
+        // Cambiar el tipo del input
+        input.type = isPassword ? 'text' : 'password';
+        
+        // Restaurar el valor (puede perderse al cambiar el tipo)
+        if (input.value !== currentValue) {
+            input.value = currentValue;
+        }
+        
+        // Actualizar el icono
+        if (isPassword) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+        
+        // Remover el atributo después de un breve delay para permitir que los eventos se procesen
+        setTimeout(() => {
+            input.removeAttribute('data-toggle-password');
+        }, 100);
     });
 }
 
